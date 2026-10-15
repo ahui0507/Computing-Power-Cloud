@@ -1,0 +1,36 @@
+# DRAFT: requires explicit approval before installing HAProxy or changing SSH listeners.
+# Existing gateway TCP 64022 -> control-node TCP 22 remains unchanged.
+global
+    log /dev/log local0
+    user haproxy
+    group haproxy
+    maxconn 4096
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+    timeout connect 5s
+    # Preserve long-lived SSH sessions; Nginx controls HTTP keepalive/timeouts.
+    timeout client 0
+    timeout server 0
+
+frontend cpcloud_shared_entry
+    bind 0.0.0.0:22
+    bind [::]:22 v6only
+    tcp-request inspect-delay 3s
+    acl campus_web_client src 10.240.0.0/16
+    acl ssh_banner req.payload(0,4) -m str SSH-
+    tcp-request content reject if HTTP !campus_web_client
+    tcp-request content accept if HTTP
+    tcp-request content accept if ssh_banner
+    use_backend cpcloud_web if HTTP
+    default_backend cpcloud_ssh
+
+backend cpcloud_web
+    # Trusted PROXY metadata preserves the real client address for the web ACL.
+    server nginx 127.0.0.1:8081 send-proxy-v2
+
+backend cpcloud_ssh
+    # Existing sshd and host keys; no PROXY header is sent to OpenSSH.
+    server sshd 127.0.0.1:2222
