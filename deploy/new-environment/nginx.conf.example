@@ -4,6 +4,7 @@ map $http_upgrade $cpcloud_connection_upgrade {
 }
 server {
     listen 127.0.0.1:8080;
+    listen 192.168.24.64:8080;
     server_name localhost 127.0.0.1;
     root /opt/computing-platform/current/frontend/dist;
     index index.html;

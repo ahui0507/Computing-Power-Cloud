@@ -10,7 +10,7 @@ SKIP_NAMES = {'账号密码.txt', '本地凭据.txt', 'credentials.json', 'secre
 
 def permitted(path):
     relative = path.relative_to(ROOT)
-    if relative.parts[0] not in DIRECTORIES and relative.as_posix() not in {'README.md', 'API.yaml', '.gitignore', '.dockerignore', '.gitattributes'}:
+    if relative.parts[0] not in DIRECTORIES and relative.as_posix() not in {'README.md', 'API.yaml', '.gitignore', '.dockerignore', '.gitattributes', '启动本地访问.ps1', '停止本地访问.ps1'}:
         return False
     if any(part in SKIP_DIRS for part in relative.parts) or path.name in SKIP_NAMES or path.is_symlink():
         return False
@@ -35,7 +35,7 @@ def bundle(output):
         for parent,dirs,names in os.walk(base):
             dirs[:] = [name for name in dirs if name not in SKIP_DIRS]
             files.extend(Path(parent)/name for name in names if permitted(Path(parent)/name))
-    files.extend(ROOT/name for name in ['README.md','API.yaml','.gitignore','.dockerignore','.gitattributes'] if (ROOT/name).is_file())
+    files.extend(ROOT/name for name in ['README.md','API.yaml','.gitignore','.dockerignore','.gitattributes','启动本地访问.ps1','停止本地访问.ps1'] if (ROOT/name).is_file())
     output.parent.mkdir(parents=True,exist_ok=True)
     with tarfile.open(output, 'w:gz') as archive:
         def source_metadata(info):

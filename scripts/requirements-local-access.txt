@@ -1,0 +1,2 @@
+# Optional Windows browser-access helper; not a platform backend dependency.
+paramiko>=3.4,<5
