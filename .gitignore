@@ -29,3 +29,5 @@ build/
 *.zip
 data/
 backups/
+output/playwright/
+.playwright-cli/

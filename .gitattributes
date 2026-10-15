@@ -12,3 +12,5 @@
 .ops export-ignore
 .venv export-ignore
 **/node_modules export-ignore
+output/playwright export-ignore
+.playwright-cli export-ignore

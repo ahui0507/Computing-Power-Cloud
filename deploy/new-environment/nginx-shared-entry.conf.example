@@ -1,5 +1,6 @@
-# DRAFT: add only after approval of SSH/HTTP multiplexing.
+# Approved SSH/HTTP multiplexing; installed by the reviewed rollout procedure.
 # cpcloud_connection_upgrade is defined by the existing cpcloud.conf.
+log_format cpcloud_shared_safe '$remote_addr [$time_local] "$request_method $uri $server_protocol" $status $body_bytes_sent';
 server {
     listen 127.0.0.1:8081 proxy_protocol;
     server_name _;
@@ -10,6 +11,7 @@ server {
     root /opt/computing-platform/current/frontend/dist;
     index index.html;
     client_max_body_size 100m;
+    access_log /var/log/nginx/cpcloud-shared-access.log cpcloud_shared_safe;
 
     location /api/ {
         proxy_pass http://127.0.0.1:8000/;

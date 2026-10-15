@@ -1,0 +1,3 @@
+[Unit]
+After=ssh.service nginx.service
+Wants=ssh.service nginx.service

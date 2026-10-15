@@ -42,7 +42,7 @@
     <section class="panel">
       <h2 class="panel-title">修改登录密码</h2>
       <p class="caption">
-        新账号初始密码为 password。修改后，下次登录使用新密码。
+        初始登录凭据由管理员交付。修改后，下次登录使用新密码。
       </p>
       <el-form
         ref="passwordRef"

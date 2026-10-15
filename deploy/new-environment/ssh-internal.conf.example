@@ -1,0 +1,5 @@
+# External SSH endpoint remains 10.72.63.42:64022.
+Port 2222
+ListenAddress 127.0.0.1
+# All proxied connections originate from loopback; HAProxy retains real client IPs.
+PerSourcePenaltyExemptList 127.0.0.1

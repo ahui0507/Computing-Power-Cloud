@@ -1,4 +1,4 @@
-# DRAFT: requires explicit approval before installing HAProxy or changing SSH listeners.
+# Approved and deployed CPCloud shared SSH/HTTP entry.
 # Existing gateway TCP 64022 -> control-node TCP 22 remains unchanged.
 global
     log /dev/log local0
