@@ -1,0 +1,15 @@
+[Unit]
+Description=Verified platform data snapshot backup
+After=network-online.target mysql.service
+Wants=network-online.target
+RequiresMountsFor=/var/lib/images /srv/platform-backups/archives
+
+[Service]
+Type=oneshot
+ExecStart=/home/REPLACE_SERVICE_USER/platform-current/backend/.venv/bin/python /opt/platform-backup/backup_snapshot.py
+TimeoutStartSec=2h
+TimeoutStopSec=90
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

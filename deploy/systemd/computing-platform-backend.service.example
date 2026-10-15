@@ -1,0 +1,19 @@
+[Unit]
+Description=Computing Platform Backend
+After=network-online.target mysql.service redis-server.service k3s.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=REPLACE_SERVICE_USER
+Group=REPLACE_SERVICE_GROUP
+WorkingDirectory=/opt/computing-platform/current/backend
+Environment=PLATFORM_ENV_FILE=/etc/cpcloud/backend.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/computing-platform/current/backend/.venv/bin/python scripts/start_backend.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

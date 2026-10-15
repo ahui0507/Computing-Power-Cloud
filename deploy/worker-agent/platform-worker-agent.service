@@ -1,0 +1,16 @@
+[Unit]
+Description=Campus platform image save agent
+After=network-online.target k3s-agent.service
+Wants=network-online.target
+RequiresMountsFor=/mnt/platform-images
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/platform-worker-agent.env
+ExecStart=/usr/bin/python3 /opt/platform-worker-agent/worker_agent.py
+Restart=always
+RestartSec=5
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

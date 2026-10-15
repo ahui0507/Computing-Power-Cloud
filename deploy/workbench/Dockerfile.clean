@@ -1,0 +1,8 @@
+# Publish a new immutable tag without reinstalling the verified toolchain.
+ARG BASE_IMAGE=campus-workbench:20261011
+FROM ${BASE_IMAGE}
+USER root
+COPY clean-public-image.sh /usr/local/share/campus-workbench/clean-public-image.sh
+RUN sh /usr/local/share/campus-workbench/clean-public-image.sh
+LABEL org.opencontainers.image.version="20261012"
+WORKDIR /workspace

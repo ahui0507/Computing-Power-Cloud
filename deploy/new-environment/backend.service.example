@@ -1,0 +1,20 @@
+[Unit]
+Description=CPCloud FastAPI backend
+After=network-online.target mysql.service redis-server.service k3s.service
+Wants=network-online.target
+Requires=mysql.service redis-server.service
+RequiresMountsFor=/srv/platform-workspaces /srv/platform-images /srv/platform-system
+[Service]
+Type=simple
+User=CPCloud
+Group=CPCloud
+WorkingDirectory=/opt/computing-platform/current/backend
+Environment=PLATFORM_ENV_FILE=/etc/cpcloud/backend.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/computing-platform/current/backend/.venv/bin/python scripts/start_backend.py
+Restart=on-failure
+RestartSec=5
+UMask=0007
+TimeoutStopSec=60
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+# 在控制节点运行；工作目录与 PVC 指向同一个 NFS 导出目录。
+services:
+  backend:
+    environment:
+      K8S_CONFIG_PATH: /app/kubeconfig
+    volumes:
+      - type: bind
+        source: ${KUBECONFIG_HOST_PATH:-/etc/rancher/k3s/k3s.yaml}
+        target: /app/kubeconfig
+        read_only: true
+        bind:
+          create_host_path: false
+      - ${WORKSPACE_ROOT_HOST:?Set WORKSPACE_ROOT_HOST to the shared workspace directory}:/app/storage
+  init-db:
+    volumes:
+      - ${WORKSPACE_ROOT_HOST:?Set WORKSPACE_ROOT_HOST to the shared workspace directory}:/app/storage

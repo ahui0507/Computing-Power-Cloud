@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: nvidia-device-plugin-ds
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: nvidia-device-plugin-ds
+    spec:
+      runtimeClassName: nvidia
+
+      containers:
+      - name: nvidia-device-plugin-ctr
+        image: nvcr.io/nvidia/k8s-device-plugin:v0.14.2
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: FAIL_ON_INIT_ERROR
+          value: "false"
+        volumeMounts:
+        - name: device-plugin
+          mountPath: /var/lib/kubelet/device-plugins
+        - name: nvidia-lib-dir
+          mountPath: /usr/lib/x86_64-linux-gnu
+
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+
+      volumes:
+      - name: device-plugin
+        hostPath:
+          path: /var/lib/kubelet/device-plugins
+          type: DirectoryOrCreate
+      - name: nvidia-lib-dir
+        hostPath:
+          path: /usr/lib/x86_64-linux-gnu
+          type: Directory
+
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      priorityClassName: system-node-critical
+      schedulerName: default-scheduler
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nvidia-device-plugin-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: nvidia-device-plugin-ds
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: nvidia-device-plugin-ds
+    spec:
+      tolerations:
+      - operator: Exists  # 允许在所有节点上运行
+      priorityClassName: "system-node-critical"
+      containers:
+      - image: nvcr.io/nvidia/k8s-device-plugin:v0.14.1
+        name: nvidia-device-plugin-ctr
+        env:
+        - name: FAIL_ON_INIT_ERROR
+          value: "false"
+        # 添加库路径环境变量，让容器能找到挂载的 NVIDIA 驱动库
+        - name: LD_LIBRARY_PATH
+          value: "/usr/local/nvidia/lib64:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/lib64:/usr/lib"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: device-plugin
+          mountPath: /var/lib/kubelet/device-plugins
+        # 挂载 NVIDIA 驱动库（470 版本）到容器内的库路径
+        - name: nvidia-driver-libs
+          mountPath: /usr/local/nvidia/lib64
+          readOnly: true
+        # 挂载 NVIDIA 设备文件
+        - name: nvidia-devices
+          mountPath: /dev
+        # 挂载 /proc 以访问驱动信息
+        - name: proc
+          mountPath: /proc
+          readOnly: true
+      volumes:
+      - name: device-plugin
+        hostPath:
+          path: /var/lib/kubelet/device-plugins
+      # 挂载 NVIDIA 驱动库目录（包含 libnvidia-ml.so.1 和 libnvidia-ml.so.470.256.02）
+      # 挂载到 /usr/local/nvidia/lib64 而不是覆盖 /usr/lib/x86_64-linux-gnu
+      - name: nvidia-driver-libs
+        hostPath:
+          path: /usr/lib/x86_64-linux-gnu
+          type: Directory
+      # 挂载 /dev 目录以访问 NVIDIA 设备文件
+      - name: nvidia-devices
+        hostPath:
+          path: /dev
+          type: Directory
+      # 挂载 /proc 以访问驱动信息
+      - name: proc
+        hostPath:
+          path: /proc
+          type: Directory
+

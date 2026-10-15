@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily platform backup and retry checks
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Asia/Shanghai
+OnUnitInactiveSec=6h
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

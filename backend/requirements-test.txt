@@ -1,0 +1,3 @@
+-r requirements.txt
+jupyterlab==4.2.5
+jupyter-server==2.14.2

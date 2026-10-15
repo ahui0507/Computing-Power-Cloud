@@ -1,0 +1,52 @@
+# FastAPI核心
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 数据库
+sqlalchemy==2.0.23
+alembic==1.12.1
+pymysql==1.1.0
+cryptography==41.0.7
+
+# 认证和安全
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-dotenv==1.0.0
+
+# Redis
+redis==5.0.1
+hiredis==2.2.1
+
+# 异步任务
+celery==5.3.4
+flower==2.0.1
+
+# Kubernetes客户端
+kubernetes==28.1.0
+
+# 存储
+minio==7.2.0
+boto3==1.29.7
+
+# HTTP客户端
+httpx==0.25.2
+aiohttp==3.9.1
+
+# 工具
+python-dateutil==2.8.2
+pytz==2023.3
+
+# 日志和监控
+prometheus-client==0.19.0
+
+# 开发工具
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+

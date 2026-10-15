@@ -1,0 +1,14 @@
+# Linux deployment archives must not depend on a Windows user's core.autocrlf.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.gz binary
+*.zip binary
+账号密码.txt export-ignore
+本地凭据.txt export-ignore
+.ops export-ignore
+.venv export-ignore
+**/node_modules export-ignore

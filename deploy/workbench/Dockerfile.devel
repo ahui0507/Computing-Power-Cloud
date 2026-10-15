@@ -1,0 +1,38 @@
+ARG BASE_IMAGE=campus-workbench:20261010
+FROM ${BASE_IMAGE} AS python-environment
+COPY wheels /tmp/campus-wheels
+COPY requirements-devel.txt /tmp/requirements-devel.txt
+RUN python -m pip install --no-cache-dir --no-index --no-deps --find-links=/tmp/campus-wheels -r /tmp/requirements-devel.txt \
+    && python -m pip check
+
+FROM ${BASE_IMAGE}
+
+USER root
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 update \
+    && apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install -y --no-install-recommends \
+        bash bash-completion coreutils findutils grep sed gawk less nano vim \
+        curl wget git openssh-client openssh-server rsync zip unzip tar gzip bzip2 xz-utils file \
+        procps psmisc htop tmux iproute2 iputils-ping dnsutils net-tools lsof traceroute netcat-openbsd \
+        build-essential cmake pkg-config ca-certificates locales tzdata \
+    && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* \
+    && mkdir -p /usr/local/share/campus-workbench \
+    && dpkg-query -W > /usr/local/share/campus-workbench/linux-packages.txt
+
+COPY --from=python-environment /opt/campus-python /opt/campus-python
+RUN python -m pip freeze > /usr/local/share/campus-workbench/python-packages.txt
+
+COPY verify_environment.py /usr/local/bin/campus-check
+COPY shell-tools.sh /etc/profile.d/campus-tools.sh
+RUN chmod 755 /usr/local/bin/campus-check \
+    && printf '\n# Campus interactive shell tools\n[ ! -f /etc/profile.d/campus-tools.sh ] || . /etc/profile.d/campus-tools.sh\n' >> /etc/bash.bashrc \
+    && campus-check
+
+COPY clean-public-image.sh /usr/local/share/campus-workbench/clean-public-image.sh
+RUN sh /usr/local/share/campus-workbench/clean-public-image.sh
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+LABEL org.opencontainers.image.title="Campus Linux development workbench" \
+      org.opencontainers.image.version="20261012" \
+      campus.python="3.10" campus.pytorch="1.13.1+cu117" campus.gpu="Tesla K80"
+WORKDIR /workspace

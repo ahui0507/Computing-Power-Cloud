@@ -1,0 +1,2 @@
+/srv/platform-workspaces 192.168.24.63(rw,sync,no_subtree_check,root_squash,anonuid=20000,anongid=20000)
+/srv/platform-images 192.168.24.63(rw,sync,no_subtree_check,root_squash,anonuid=20000,anongid=20000)

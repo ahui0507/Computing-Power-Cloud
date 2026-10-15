@@ -1,0 +1,13 @@
+{
+  "backend": "/home/REPLACE_SERVICE_USER/platform-current/backend",
+  "site_file": "/etc/platform-site.json",
+  "data_mount": "/var/lib/images",
+  "device": "/dev/ubuntu-vg/images",
+  "volume_group": "ubuntu-vg",
+  "workspace_relative": "platform-data/workspaces",
+  "images_relative": "platform-data/images",
+  "archive_root": "/srv/platform-backups/archives",
+  "worker_journal_root": "/srv/platform-backups/worker-jobs",
+  "status_file": "/var/lib/images/platform-data/backup-status.json",
+  "retention": 3
+}

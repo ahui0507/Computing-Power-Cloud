@@ -1,0 +1,23 @@
+[Unit]
+Description=Computing platform host metrics collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/platform-monitor.env
+ExecStart=/usr/bin/python3 /opt/platform-monitor/monitor_agent.py
+Restart=always
+RestartSec=5
+User=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectControlGroups=true
+MemoryMax=128M
+CPUQuota=10%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "public_url": "http://platform.example.edu",
+  "database_name": "computing_platform",
+  "namespace": "default",
+  "service_user": "REPLACE_SERVICE_USER",
+  "service_group": "REPLACE_SERVICE_GROUP",
+  "backend_service": "computing-platform-backend",
+  "release_root": "/opt/computing-platform/releases",
+  "current_link": "/opt/computing-platform/current",
+  "web_link": "/var/www/platform-current",
+  "workspace_root": "/srv/platform-workspaces",
+  "workspace_gid": 20000,
+  "image_store_root": "/srv/platform-images",
+  "kubeconfig": "/etc/cpcloud/kubeconfig",
+  "control": {"id": 1, "name": "control", "ip": "REPLACE_NODE_INTERNAL_IP", "nfs_ip": "REPLACE_NODE_INTERNAL_IP"},
+  "traefik_upstream": "http://REPLACE_NODE_INTERNAL_IP:31663",
+  "workers": [
+    {"id": 2, "name": "worker1", "ip": "REPLACE_NODE_INTERNAL_IP", "agent_port": 8091,
+     "image_mount": "/mnt/platform-images"}
+  ]
+}

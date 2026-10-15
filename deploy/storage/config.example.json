@@ -1,0 +1,13 @@
+{
+  "data_mount": "/srv/platform-users",
+  "device": "/dev/disk/by-uuid/REPLACE_CONFIRMED_USER_VOLUME_UUID",
+  "workspace_root": "/srv/platform-workspaces",
+  "image_root": "/srv/platform-images",
+  "storage_uid": 20000,
+  "storage_gid": 20000,
+  "reserve_percent": 20,
+  "reserve_free_bytes": "REPLACE_FROM_ACTUAL_FILESYSTEM_CAPACITY",
+  "pool_capacity_bytes": "REPLACE_FROM_AVAILABLE_SPACE_AFTER_RESERVE",
+  "pool_inode_capacity": "REPLACE_FROM_ACTUAL_AVAILABLE_INODES",
+  "default_user_inode_limit": 200000
+}

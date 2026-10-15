@@ -1,0 +1,200 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: computing-platform-backend
+  namespace: default
+  labels:
+    app: computing-platform-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: computing-platform-backend
+  template:
+    metadata:
+      labels:
+        app: computing-platform-backend
+    spec:
+      serviceAccountName: backend-service-account
+      containers:
+      - name: backend
+        image: computing-platform-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom: &id001
+            secretKeyRef:
+              name: db-secret
+              key: url
+        - name: REDIS_HOST
+          value: redis-service
+        - name: REDIS_PORT
+          value: '6379'
+        - name: SECRET_KEY
+          valueFrom: &id002
+            secretKeyRef:
+              name: jwt-secret
+              key: key
+        - name: K8S_NAMESPACE
+          value: default
+        - name: CORS_ORIGINS
+          value: http://localhost:3000,http://localhost:8080
+        - name: STORAGE_ROOT
+          value: /app/storage
+        - name: WORKSPACE_PVC_NAME
+          value: platform-workspaces
+        - name: AUTO_INIT_DATABASE
+          value: 'false'
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts: &id003
+        - name: workspaces
+          mountPath: /app/storage
+      volumes:
+      - name: workspaces
+        persistentVolumeClaim:
+          claimName: platform-workspaces
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      initContainers:
+      - name: initialize-database
+        image: computing-platform-backend:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - scripts/start_backend.py
+        - --initialize-only
+        env:
+        - name: DATABASE_URL
+          valueFrom: *id001
+        - name: REDIS_HOST
+          value: redis-service
+        - name: REDIS_PORT
+          value: '6379'
+        - name: SECRET_KEY
+          valueFrom: *id002
+        - name: K8S_NAMESPACE
+          value: default
+        - name: CORS_ORIGINS
+          value: http://localhost:3000,http://localhost:8080
+        - name: STORAGE_ROOT
+          value: /app/storage
+        - name: WORKSPACE_PVC_NAME
+          value: platform-workspaces
+        - name: AUTO_INIT_DATABASE
+          value: 'true'
+        volumeMounts: *id003
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: computing-platform-backend
+  namespace: default
+  labels:
+    app: computing-platform-backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: computing-platform-backend
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backend-service-account
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backend-role
+  namespace: default
+rules:
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - services
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - pods/exec
+  verbs:
+  - create
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - patch
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backend-role-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: backend-service-account
+  namespace: default
+roleRef:
+  kind: Role
+  name: backend-role
+  apiGroup: rbac.authorization.k8s.io

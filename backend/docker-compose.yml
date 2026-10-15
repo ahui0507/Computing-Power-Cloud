@@ -1,0 +1,80 @@
+x-backend: &backend
+  build: .
+  image: computing-platform-backend:local
+  env_file: .env
+  environment: &backend-environment
+    DATABASE_URL: ${COMPOSE_DATABASE_URL:?Set the confirmed database URL for the db service}
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    REDIS_USERNAME: ${REDIS_USERNAME:?Set a confirmed Redis ACL username}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:?Set a confirmed Redis password}
+    STORAGE_ROOT: /app/storage
+  volumes:
+    - ${WORKSPACE_ROOT_HOST:-./storage}:/app/storage
+
+services:
+  init-db:
+    <<: *backend
+    command: ["python", "scripts/start_backend.py", "--initialize-only"]
+    environment:
+      <<: *backend-environment
+      AUTO_INIT_DATABASE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    <<: *backend
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *backend-environment
+      AUTO_INIT_DATABASE: "false"
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set the confirmed root password}
+      MYSQL_DATABASE: computing_platform
+      MYSQL_USER: ${MYSQL_USER:?Set the confirmed database user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set the confirmed database password}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--aclfile", "/run/redis.acl"]
+    environment:
+      REDIS_USERNAME: ${REDIS_USERNAME:?Set a confirmed Redis ACL username}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set a confirmed Redis password}
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+      - ${REDIS_ACL_HOST_PATH:?Set the private Redis ACL file path}:/run/redis.acl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli --user $$REDIS_USERNAME ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+

@@ -1,0 +1,11 @@
+node-name: dell
+node-ip: 192.168.24.64
+advertise-address: 192.168.24.64
+bind-address: 192.168.24.64
+data-dir: /srv/platform-system/k3s
+token-file: /etc/rancher/k3s/token
+write-kubeconfig-mode: '0600'
+tls-san:
+  - 192.168.24.64
+disable:
+  - servicelb
