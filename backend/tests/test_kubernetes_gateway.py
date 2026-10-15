@@ -43,6 +43,33 @@ def test_ip_access_uses_hostless_ingress_rule():
     assert rule["http"]["paths"][0]["path"] == "/jupyter/1/"
 
 
+@pytest.mark.parametrize("host", ["192.0.2.2:64022", "[2001:db8::2]:64022"])
+def test_mapped_ip_port_uses_hostless_ingress_and_keeps_public_port(host):
+    from app.services.access_service import AccessService
+
+    workload = spec(host)
+    assert "host" not in build_ingress(workload)["spec"]["rules"][0]
+    assert AccessService.get_jupyter_url(None, 1, options={"ingress_host": host}) == (
+        f"http://{host}/jupyter/1/"
+    )
+
+
+def test_mapped_dns_port_is_excluded_from_ingress_host_and_tls():
+    from dataclasses import replace
+
+    manifest = build_ingress(replace(spec("cloud.example.com:64022"), use_tls=True))
+    assert manifest["spec"]["rules"][0]["host"] == "cloud.example.com"
+    assert manifest["spec"]["tls"][0]["hosts"] == ["cloud.example.com"]
+
+
+def test_bare_ipv6_jupyter_access_is_bracketed():
+    from app.services.access_service import AccessService
+
+    assert AccessService.get_jupyter_url(None, 1, options={"ingress_host": "2001:db8::2"}) == (
+        "http://[2001:db8::2]/jupyter/1/"
+    )
+
+
 def test_running_pod_without_readiness_is_still_pending():
     core = MagicMock()
     core.read_namespaced_pod.return_value = SimpleNamespace(

@@ -1,4 +1,6 @@
 from base64 import b64encode
+import ipaddress
+from urllib.parse import urlsplit
 
 from app.core.exceptions import ResourceConflictError
 from app.core.exceptions import ClusterOperationError
@@ -53,6 +55,11 @@ class SSHService:
         if "SSH_PASSWORD_READY" not in output:
             raise ClusterOperationError("SSH 密码配置暂未完成，请重试连接信息")
         host = options.get("access_host") or AccessService.get_jupyter_host(db)
+        try:
+            ipaddress.ip_address(host)
+        except ValueError:
+            # The HTTP publishing port is independent of the instance SSH NodePort.
+            host = urlsplit("//" + host).hostname or host
         return {
             "host": host,
             "port": allocation.ssh_port,

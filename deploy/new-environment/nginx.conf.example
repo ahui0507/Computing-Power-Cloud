@@ -24,6 +24,19 @@ server {
         proxy_set_header Connection $cpcloud_connection_upgrade;
         proxy_read_timeout 3600;
     }
+    # Recheck the Traefik ClusterIP after rebuilding the cluster.
+    location /jupyter/ {
+        proxy_pass http://10.43.190.20:80;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $cpcloud_connection_upgrade;
+        proxy_read_timeout 3600;
+        proxy_buffering off;
+        access_log /var/log/nginx/cpcloud-jupyter-access.log cpcloud_jupyter_safe;
+    }
     location / {
         try_files $uri $uri/ /index.html;
     }

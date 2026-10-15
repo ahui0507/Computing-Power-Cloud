@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from base64 import b64encode
 import shlex
 import json
+from urllib.parse import urlsplit
 from app.core.workspace import LEGACY_LAYOUT, SEPARATE_LAYOUT, persistent_path
 from app.infrastructure.kubernetes.shell_runtime import SHELL_SETUP
 from app.infrastructure.kubernetes.ssh_runtime import SSH_PASSWORD_SETUP
@@ -134,6 +135,7 @@ def build_pod(spec: WorkloadSpec) -> dict:
                     "name": "shared-memory",
                     "emptyDir": {"medium": "Memory", "sizeLimit": spec.shared_memory_size},
                 },
+                {"name": "jupyter-runtime", "emptyDir": {}},
             ],
             "containers": [
                 {
@@ -148,6 +150,7 @@ def build_pod(spec: WorkloadSpec) -> dict:
                             "subPath": f"user_{spec.user_id}",
                         },
                         {"name": "shared-memory", "mountPath": "/dev/shm"},
+                        {"name": "jupyter-runtime", "mountPath": "/run/platform-jupyter"},
                     ],
                     "env": [
                         {
@@ -160,6 +163,7 @@ def build_pod(spec: WorkloadSpec) -> dict:
                             },
                         },
                         {"name": "NVIDIA_DRIVER_CAPABILITIES", "value": "compute,utility"},
+                        {"name": "JUPYTER_RUNTIME_DIR", "value": "/run/platform-jupyter"},
                     ],
                     "ports": [
                         {"containerPort": port, "name": name, "protocol": "TCP"}
@@ -175,6 +179,7 @@ def build_pod(spec: WorkloadSpec) -> dict:
                         "--port=8888",
                         "--no-browser",
                         "--allow-root",
+                        "--ServerApp.log_level=WARN",
                     ],
                     "readinessProbe": {
                         "tcpSocket": {"port": 8888},
@@ -309,18 +314,25 @@ def build_ingress(spec: WorkloadSpec) -> dict:
     }
     import ipaddress
 
+    # Public URLs may include a mapped port; Ingress host/TLS names cannot.
+    ingress_host = spec.ingress_host
+    try:
+        ipaddress.ip_address(ingress_host)
+    except ValueError:
+        ingress_host = urlsplit("//" + ingress_host).hostname or ingress_host
+
     is_domain = False
     try:
-        ipaddress.ip_address(spec.ingress_host)
+        ipaddress.ip_address(ingress_host)
     except ValueError:
         is_domain = True
-        ingress_spec["rules"][0]["host"] = spec.ingress_host
+        ingress_spec["rules"][0]["host"] = ingress_host
     if spec.ingress_class:
         ingress_spec["ingressClassName"] = spec.ingress_class
     if spec.use_tls:
         ingress_spec["tls"] = [
             {
-                "hosts": [spec.ingress_host] if is_domain else [],
+                "hosts": [ingress_host] if is_domain else [],
                 "secretName": f"{spec.ingress_name}-tls",
             }
         ]

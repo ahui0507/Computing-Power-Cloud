@@ -174,3 +174,4 @@ def test_real_jupyter_authentication_files_and_kernel_execution(workspace, tmp_p
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
+    assert token not in (tmp_path / "jupyter.log").read_text(encoding="utf-8", errors="replace")

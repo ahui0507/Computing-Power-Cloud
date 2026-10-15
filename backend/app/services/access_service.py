@@ -1,7 +1,17 @@
 """将平台接入配置转换为工作负载的访问地址。"""
+import ipaddress
 from app.core.config import settings
 from app.models.node import Node
 from app.models.operation import OperationKind
+
+
+def url_host(host):
+    """Bracket bare IPv6 addresses while preserving an existing host:port."""
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    return f"[{host}]" if address.version == 6 else host
 
 
 class AccessService:
@@ -22,11 +32,11 @@ class AccessService:
             )
             if not host or not port:
                 return None
-            host = f"[{host}]" if ":" in host and not host.startswith("[") else host
+            host = url_host(host)
             return f"http://{host}:{port}/"
         protocol = "https" if options.get("use_tls", settings.INGRESS_USE_TLS) else "http"
         host = options.get("ingress_host") or AccessService.get_jupyter_host(db)
-        host = f"[{host}]" if ":" in host and not host.startswith("[") else host
+        host = url_host(host)
         return f"{protocol}://{host}/jupyter/{allocation_id}/"
 
     @staticmethod

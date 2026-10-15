@@ -1,0 +1,3 @@
+# Install as /etc/nginx/conf.d/00-cpcloud-jupyter-log.conf.
+# Keep independent of website publishing so the SSH rollback stays valid.
+log_format cpcloud_jupyter_safe '$remote_addr [$time_local] "$request_method $uri $server_protocol" $status $body_bytes_sent';
