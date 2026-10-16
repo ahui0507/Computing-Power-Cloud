@@ -57,6 +57,7 @@ class OperationService:
                 "workspace_gid": settings.WORKSPACE_GID,
                 "gpu_runtime_class": settings.K8S_GPU_RUNTIME_CLASS,
                 "shared_memory_size": settings.WORKLOAD_SHM_SIZE_LIMIT,
+                "nccl_p2p_disable": settings.WORKLOAD_NCCL_P2P_DISABLE,
                 "cpu_cores": cpu_cores,
                 "cpu_millicores": cpu_millicores,
                 "ram_mb": ram_mb,

@@ -8,7 +8,7 @@ runtime=Path('/run/platform-shell')
 runtime.mkdir(parents=True,exist_ok=True)
 Path('/workspace').mkdir(parents=True,exist_ok=True)
 exports=''.join('export '+name+'='+shlex.quote(os.environ[name])+'\n'
-    for name in ('PATH','LD_LIBRARY_PATH','CUDA_HOME','NVIDIA_VISIBLE_DEVICES','NVIDIA_DRIVER_CAPABILITIES')
+    for name in ('PATH','LD_LIBRARY_PATH','CUDA_HOME','NVIDIA_VISIBLE_DEVICES','NVIDIA_DRIVER_CAPABILITIES','NCCL_P2P_DISABLE')
     if name in os.environ)
 (runtime/'environment.sh').write_text(exports)
 (runtime/'ssh-session').write_text(r"""#!/bin/bash

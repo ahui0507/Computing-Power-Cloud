@@ -145,6 +145,7 @@ def test_shell_setup_preserves_saved_work_and_profiles_and_uses_shared_bash(tmp_
     passwd.write_text("root:x:0:0:root:/root:/bin/sh\nother:x:1:1:other:/tmp:/bin/sh\n")
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("JUPYTER_TOKEN", "not-for-shell-files")
+    monkeypatch.setenv("NCCL_P2P_DISABLE", "1")
     monkeypatch.setattr(os, "geteuid", lambda: 0)
     source = (
         SHELL_SETUP.replace("/run/platform-shell", str(runtime))
@@ -166,12 +167,14 @@ def test_shell_setup_preserves_saved_work_and_profiles_and_uses_shared_bash(tmp_
             "--rcfile",
             str(runtime / "bashrc"),
             "-ic",
-            'printf "SHELL_CHECK=%s\\n" "$SHELL"; printf "%s\\n" "$PWD"; alias ll',
+            'printf "SHELL_CHECK=%s\\n" "$SHELL"; printf "NCCL_CHECK=%s\\n" "$NCCL_P2P_DISABLE"; printf "%s\\n" "$PWD"; alias ll',
         ],
         cwd=home,
         capture_output=True,
         text=True,
+        env={key: value for key, value in os.environ.items() if key != "NCCL_P2P_DISABLE"},
     )
     assert result.returncode == 0
     assert "SHELL_CHECK=/bin/bash" in result.stdout
+    assert "NCCL_CHECK=1" in result.stdout
     assert str(work) in result.stdout and "ls -alF" in result.stdout

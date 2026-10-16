@@ -36,6 +36,8 @@ kubectl apply -f deploy/kubernetes/backend/backend-deployment.yaml
 
 实例的 `/dev/shm` 使用独立、按需占用的内存型 emptyDir，默认上限 `1Gi`，避免容器默认 64 MiB 导致多卡 NCCL 或多进程 DataLoader 失败。可通过 `WORKLOAD_SHM_SIZE_LIMIT` 配置正整数 `Mi`/`Gi`；该值在下单时冻结到创建操作，调整配置只影响后续申请。已有实例需保存文件、释放并重新申请才能获得新挂载。
 
+`WORKLOAD_NCCL_P2P_DISABLE` 默认关闭。对于已确认 PCIe peer DMA 与 IOMMU/ACS 冲突的站点，可开启后为新实例注入 `NCCL_P2P_DISABLE=1`；值随创建操作冻结，SSH 和交互 Shell 同步传递，旧操作没有该字段时保留原行为。该选项可能降低多卡通信带宽，不修复硬件 P2P。当前 A100 站点已获批准并启用，实施记录见 [多卡通信兼容方案](../docs/多卡通信兼容方案.md)。
+
 计算配额采用比例规则，`NODE_RESERVED_CPU_PERCENT` 和 `NODE_RESERVED_RAM_PERCENT` 默认均为 20。先按节点容量预留系统份额，再按申请 GPU 数占该节点全部登记 GPU 数的比例分配，CPU 以毫核、内存以 MiB 向下取整；不再使用旧的每卡固定数量或固定系统预留数量。采集服务更新节点硬件容量，容量未知或监控准入不满足时停止新分配。
 
 GPU 总数按整个节点计算，跨用户、跨资源池共用预算。每次申请冻结实际配额和分母；异构节点的创建页不会承诺一个统一份额，实例详情以实际分配节点为准。已有固定配额记录保留原限制和历史，不改写为比例订单。申请使用用户、资源池、节点、GPU 的一致锁顺序，实例 CPU/内存 requests 与 limits 相同，CPU 为时间配额而非独占物理核心。共享内存计入实例内存上限，CPU/内存不另收费。

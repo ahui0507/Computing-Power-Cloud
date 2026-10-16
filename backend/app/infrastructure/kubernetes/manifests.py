@@ -30,7 +30,7 @@ UsePAM no
 StrictModes no
 Subsystem sftp internal-sftp -u 0002
 EOF
-python -c 'import os; from pathlib import Path; p=Path("/run/platform-ssh/sshd_config"); names=("PATH","LD_LIBRARY_PATH","CUDA_HOME","NVIDIA_VISIBLE_DEVICES","NVIDIA_DRIVER_CAPABILITIES"); p.write_text(p.read_text()+"".join("SetEnv "+n+"="+os.environ[n]+"\n" for n in names if n in os.environ and not any(c.isspace() for c in os.environ[n])))'
+python -c 'import os; from pathlib import Path; p=Path("/run/platform-ssh/sshd_config"); names=("PATH","LD_LIBRARY_PATH","CUDA_HOME","NVIDIA_VISIBLE_DEVICES","NVIDIA_DRIVER_CAPABILITIES","NCCL_P2P_DISABLE"); p.write_text(p.read_text()+"".join("SetEnv "+n+"="+os.environ[n]+"\n" for n in names if n in os.environ and not any(c.isspace() for c in os.environ[n])))'
 /usr/sbin/sshd -f /run/platform-ssh/sshd_config
 exec "$@"
 """
@@ -66,6 +66,7 @@ class WorkloadSpec:
     ssh_authorized_keys: str = ""
     ssh_password_hash: str = ""
     shared_memory_size: str = "1Gi"
+    nccl_p2p_disable: bool = False
     cpu_cores: int | None = None
     cpu_millicores: int | None = None
     ram_mb: int | None = None
@@ -190,6 +191,10 @@ def build_pod(spec: WorkloadSpec) -> dict:
             ],
         },
     }
+    if spec.nccl_p2p_disable:
+        manifest["spec"]["containers"][0]["env"].append(
+            {"name": "NCCL_P2P_DISABLE", "value": "1"}
+        )
     if spec.storage_layout not in (LEGACY_LAYOUT, SEPARATE_LAYOUT):
         raise ValueError("Unknown storage layout")
     if spec.storage_layout == SEPARATE_LAYOUT:

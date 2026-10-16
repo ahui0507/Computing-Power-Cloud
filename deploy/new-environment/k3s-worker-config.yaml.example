@@ -1,0 +1,9 @@
+# Steady-state configuration after successful acceptance and maintenance release.
+# Initial installation uses a maintenance taint in install-compute-k3s.sh.
+server: https://192.168.24.64:6443
+token-file: /etc/rancher/k3s/token
+node-name: ubuntu
+node-ip: 192.168.24.63
+flannel-iface: ens12f0
+node-label:
+  - nvidia.com/gpu.present=true

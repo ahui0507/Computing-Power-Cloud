@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     K8S_IMAGE_PULL_POLICY: str = "Never"
     K8S_GPU_RUNTIME_CLASS: str = "nvidia"
     WORKLOAD_SHM_SIZE_LIMIT: str = Field(default="1Gi", pattern=r"^[1-9]\d*(?:Mi|Gi)$")
+    WORKLOAD_NCCL_P2P_DISABLE: bool = False
     NODE_RESERVED_CPU_PERCENT: float = Field(default=20, ge=0, lt=100)
     NODE_RESERVED_RAM_PERCENT: float = Field(default=20, ge=0, lt=100)
     JUPYTER_COMMAND: str = "jupyter-lab"
