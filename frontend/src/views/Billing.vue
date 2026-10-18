@@ -44,7 +44,7 @@
     </p>
     <div v-else-if="budget.summary" class="detail-grid">
       <div class="detail-item">
-        <label>GPU 配额</label>
+        <label>GPU 并发配额（已用 / 上限）</label>
         <div>
           {{ budget.summary.used_gpus }} /
           {{ budget.summary.max_gpus }} 张，剩余
@@ -73,6 +73,7 @@
       </div>
     </div>
     <p class="caption section-gap">
+      GPU 配额是本账号所有未释放实例合计可占用的卡数，由管理员设置；实际可申请数量还受平台空闲卡数限制。
       余额由管理员统一增加，请联系管理员补充额度。可用余额不超过 10
       元时预警；欠费后保留 6
       小时用于保存文件和镜像，到期自动释放实例，个人存储继续保留。新申请需要覆盖全部实例未来至少

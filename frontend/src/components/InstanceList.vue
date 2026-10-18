@@ -78,7 +78,7 @@
             ><span class="table-primary">{{ row.gpus }} × GPU</span>
             <div class="table-secondary">
               CPU / 内存：{{ instanceShareText(row) }}
-            </div></template
+            </div><div v-if="row.ephemeral_storage_gib" class="table-secondary">临时磁盘：{{ row.ephemeral_storage_gib }} GiB</div></template
           ></el-table-column
         >
         <el-table-column
@@ -106,12 +106,12 @@
               class="table-secondary"
             >
               到期 {{ formatTime(row.package_expires_at) }}
-            </div></template
+            </div><div v-if="!historical && row.scheduled_release_at" class="table-secondary">自动释放 {{ formatTime(row.scheduled_release_at) }}</div></template
           ></el-table-column
         >
         <el-table-column
           label="操作"
-          :width="historical ? 170 : 250"
+          :width="historical ? 170 : 320"
           fixed="right"
           ><template #default="{ row }"
             ><div class="table-actions" @click.stop>
@@ -140,6 +140,7 @@
                   :disabled="row.status !== 'running'"
                   @click="saveImage(row)"
                   >保存镜像</el-button
+                ><el-button link type="primary" :disabled="!['pending','running'].includes(row.status)" @click="schedule(row)">定时释放</el-button
                 ><el-button
                   link
                   type="danger"
@@ -318,11 +319,12 @@
   </el-drawer>
   <SSHDialog v-model="sshOpen" :container-id="actionId" />
   <SaveImageDialog v-model="saveOpen" :container-id="actionId" />
+  <ReleaseScheduleDialog v-model="scheduleOpen" :instance="scheduleInstance" />
+  <ReleaseInstanceDialog v-model="releaseOpen" :instance="releaseInstance" @released="afterRelease" />
 </template>
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { useResourceStore } from '@/stores/resource'
 import { useBillingStore } from '@/stores/billing'
 import { useAuthStore } from '@/stores/auth'
@@ -337,7 +339,7 @@ import {
 } from '@/utils/instance'
 import { formatTime, getStatusText } from '@/utils/format'
 import { instanceShareText } from '@/utils/compute'
-import { reportError, copyText } from '@/utils/feedback'
+import { copyText } from '@/utils/feedback'
 import type { Container } from '@/types'
 import AsyncState from './AsyncState.vue'
 import StatusTag from './StatusTag.vue'
@@ -346,6 +348,11 @@ import InstanceStorage from './InstanceStorage.vue'
 import InstanceDiagnostics from './InstanceDiagnostics.vue'
 import SSHDialog from './SSHDialog.vue'
 import SaveImageDialog from './SaveImageDialog.vue'
+import ReleaseScheduleDialog from './ReleaseScheduleDialog.vue'
+import ReleaseInstanceDialog from './ReleaseInstanceDialog.vue'
+const releaseOpen = ref(false), releaseInstance = ref<Container>()
+const scheduleOpen = ref(false), scheduleInstance = ref<Container>()
+function schedule(row: Container) { scheduleInstance.value = row; scheduleOpen.value = true }
 const sshOpen = ref(false),
   saveOpen = ref(false),
   actionId = ref('')
@@ -473,30 +480,11 @@ function reapply(row: Container) {
     },
   })
 }
-async function release(row: Container) {
-  try {
-    await ElMessageBox.confirm(
-      `释放 ${instanceName(row)} 后，运行中的程序会终止。${isPackage(row) ? '包时费用已预付，提前释放不退费。' : '按实际使用时间完成结算。'}${row.storage_layout === 'separate-v1' ? '/workspace 和系统盘中未保存的内容会删除，请先复制到 /data 或保存镜像。' : '/workspace 中的个人文件会保留。'}`,
-      '释放实例',
-      {
-        confirmButtonText: '确认释放',
-        cancelButtonText: '继续使用',
-        type: 'warning',
-      },
-    )
-    const result = await store.releaseResource(row.container_id)
-    ElMessage.success(
-      result === 'releasing'
-        ? '已提交释放，完成后会自动移入历史订单'
-        : '实例已释放，记录已移入历史订单',
-    )
-    await Promise.allSettled([
-      auth.fetchUserInfo(),
-      billing.fetchRecords(),
-      useBudgetStore().refresh(),
-    ])
-  } catch (error) {
-    reportError(error)
-  }
+function release(row: Container) {
+  releaseInstance.value = row
+  releaseOpen.value = true
+}
+async function afterRelease() {
+  await Promise.allSettled([auth.fetchUserInfo(), billing.fetchRecords(), useBudgetStore().refresh()])
 }
 </script>

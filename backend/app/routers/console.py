@@ -75,9 +75,19 @@ def change_password(
     if body.old_password == body.new_password:
         raise ResourceConflictError("新密码不能与当前密码相同")
     user.password_hash = get_password_hash(body.new_password)
+    # Atomic increment also prevents concurrent password changes from reviving old sessions.
+    db.query(User).filter_by(id=user.id).update({User.auth_version: User.auth_version + 1}, synchronize_session=False)
     audit(db, user, "修改密码", "user", user.id)
     db.commit()
-    return success_response(message="密码已修改，下次登录请使用新密码")
+    return success_response(message="密码已修改，所有平台登录会话已失效，请重新登录")
+
+
+@router.post("/account/revoke-sessions")
+def revoke_sessions(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db.query(User).filter_by(id=user.id).update({User.auth_version: User.auth_version + 1}, synchronize_session=False)
+    audit(db, user, "撤销全部登录会话", "user", user.id)
+    db.commit()
+    return success_response(message="所有平台登录会话已失效，请重新登录")
 
 
 class KeyInput(BaseModel):

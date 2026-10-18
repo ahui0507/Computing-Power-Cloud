@@ -23,6 +23,7 @@ export interface AuthResponse {
 
 // 镜像相关
 export interface Image {
+  display_name?: string | null
   supports_ssh?: boolean
   snapshot_status?: 'saving' | 'ready' | 'failed' | 'deleting' | 'retired'
   snapshot_error?: string | null
@@ -71,6 +72,7 @@ export interface ResourcePool {
   free_gpus: number
   physical_free_gpus?: number
   max_gpus_per_instance?: number
+  queue_max_gpus_per_instance?: number
   cpu_cores_per_gpu?: number
   node_gpu_count?: number | null
   system_cpu_percent?: number
@@ -78,8 +80,10 @@ export interface ResourcePool {
   ram_mb_per_gpu?: number
   available_cpu_cores?: number
   available_ram_mb?: number
+  ephemeral_storage_gib_per_gpu?: number | null
   memory_mb?: number | null
   compute_capability?: string | null
+  architecture?: string | null
   driver_versions?: string[]
   driver_cuda_versions?: string[]
   cuda_arch_max?: string | null
@@ -114,6 +118,7 @@ export interface Container {
   cpu_cores?: number | null
   node_gpu_count?: number | null
   ram_mb?: number | null
+  ephemeral_storage_gib?: number | null
   image: string
   status: ContainerStatus
   start_time: string | null
@@ -123,6 +128,8 @@ export interface Container {
   billing_mode?: string
   package_amount?: number | null
   package_expires_at?: string | null
+  scheduled_release_at?: string | null
+  release_after_hours?: number | null
   package_refunded?: boolean
   settled_amount?: number | null
   pool_id?: number | null
@@ -135,6 +142,9 @@ export interface Container {
 }
 
 export interface ApplyResourceResponse {
+  persistent_path?: string
+  storage_scope?: 'user'
+  personal_storage_limit_gib?: number | null
   container_id: string
   node_id: number
   status: ContainerStatus

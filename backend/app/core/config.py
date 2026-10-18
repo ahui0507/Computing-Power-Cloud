@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    LOGIN_MAX_FAILURES: int = Field(default=10, ge=3, le=100)
+    LOGIN_WINDOW_SECONDS: int = Field(default=900, ge=60, le=3600)
+    RESOURCE_QUEUE_TTL_HOURS: int = Field(default=24, ge=1, le=168)
+    ADMIN_ALERTS_ENABLED: bool = True
+    GPU_TEMPERATURE_ALERT_C: float = Field(default=85, ge=60, le=110)
+    BACKUP_MAX_AGE_HOURS: int = Field(default=48, ge=1)
+    BACKUP_ALERTS_ENABLED: bool = True
+    WORKLOAD_EPHEMERAL_GIB_PER_GPU: int = Field(default=40, ge=1, le=200)
+    RECONCILIATION_HEARTBEAT_FILE: str = ""
+    INSTANCE_SAFETY_ENABLED: bool = False
 
     # 短信服务配置
     SMS_PROVIDER: str = "local"  # aliyun, tencent, local
@@ -71,6 +81,8 @@ class Settings(BaseSettings):
     K8S_GPU_RUNTIME_CLASS: str = "nvidia"
     WORKLOAD_SHM_SIZE_LIMIT: str = Field(default="1Gi", pattern=r"^[1-9]\d*(?:Mi|Gi)$")
     WORKLOAD_NCCL_P2P_DISABLE: bool = False
+    WORKLOAD_ISOLATION_ENABLED: bool = False
+    WORKLOAD_NETWORK_POLICY_SHA256: str = Field(default="", pattern=r"^(?:[a-f0-9]{64})?$")
     NODE_RESERVED_CPU_PERCENT: float = Field(default=20, ge=0, lt=100)
     NODE_RESERVED_RAM_PERCENT: float = Field(default=20, ge=0, lt=100)
     JUPYTER_COMMAND: str = "jupyter-lab"
@@ -85,7 +97,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_BYTES: int = Field(default=100 * 1024 * 1024, gt=0)
     STORAGE_QUOTA_ENABLED: bool = False
     STORAGE_QUOTA_MODE: str = Field(default="fixed", pattern="^(fixed|percent)$")
-    DEFAULT_STORAGE_LIMIT_GIB: int = Field(default=100, ge=1)
+    DEFAULT_STORAGE_LIMIT_GIB: int = Field(default=300, ge=1)
     STORAGE_QUOTA_HELPER: str = "/usr/local/sbin/platform-storage"
     DEFAULT_STORAGE_SHARE_PERCENT: float = Field(default=10, gt=0, le=100)
     STORAGE_WARNING_PERCENT: float = Field(default=80, gt=0, le=100)
@@ -107,6 +119,8 @@ class Settings(BaseSettings):
     INGRESS_HOST: str = "platform.local"  # Ingress 域名（需要与实际访问域名一致）
     INGRESS_CLASS: str = "traefik"  # Ingress Controller 类型（k3s 默认使用 traefik）
     INGRESS_USE_TLS: bool = False  # 是否启用 TLS（内网测试可设为 False）
+    # Public reverse proxy terminates TLS; Kubernetes Ingress may remain HTTP.
+    PUBLIC_HTTPS_ENABLED: bool = False
     # Jupyter 连接网址使用控制节点：若设置 CONTROL_NODE_ID，则 Jupyter URL 的 host 取该节点的 ip，否则用 INGRESS_HOST
     CONTROL_NODE_ID: Optional[int] = None  # 控制节点在 nodes 表中的 id，用于 Jupyter 访问地址
 
@@ -126,7 +140,12 @@ class Settings(BaseSettings):
 
     # 计费配置
     BILLING_ENABLED: bool = True
-    DEFAULT_MAX_USER_GPUS: int = Field(default=4, ge=0)
+    DEFAULT_MAX_USER_GPUS: int = Field(default=8, ge=0)
+    SSH_TUNNEL_ENABLED: bool = False
+    SSH_JUMP_HOST: Optional[str] = Field(default=None, pattern=r"^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[0-9]{1,5}$")
+    SSH_GATEWAY_ENABLED: bool = False
+    SSH_GATEWAY_ENDPOINT: Optional[str] = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9.-]*:[0-9]{1,5}$")
+    SSH_GATEWAY_HELPER: str = "/usr/local/sbin/platform-ssh-gateway"
     DEFAULT_MAX_USER_INSTANCES: int = Field(default=4, ge=0)
     DEFAULT_LOW_BALANCE_AMOUNT: float = Field(default=10, ge=0, allow_inf_nan=False)
     DEFAULT_LOW_BALANCE_MINUTES: int = Field(default=0, ge=0)
@@ -137,7 +156,7 @@ class Settings(BaseSettings):
     TELEMETRY_ENFORCE_FRESHNESS: bool = False
     TELEMETRY_CLEANUP_ENABLED: bool = True
     DEFAULT_GPU_PRICE_V100: float = 10.0
-    DEFAULT_GPU_PRICE_A100: float = 20.0
+    DEFAULT_GPU_PRICE_A100: float = 5.0
     DEFAULT_GPU_PRICE_RTX4090: float = 15.0
     DEFAULT_GPU_PRICE_K80: float = 5.0
 

@@ -38,11 +38,13 @@
         当前实例通过 JupyterLab 和浏览器终端连接，无需配置
         SSH。下方公钥可保存在账户中供支持 SSH 的环境使用。
       </div>
+      <el-button class="section-gap" type="warning" :loading="revoking" @click="revokeSessions">撤销全部平台登录会话</el-button>
+      <p class="caption">包括当前浏览器，会要求重新登录；已运行的训练、SSH及Jupyter连接继续运行。</p>
     </section>
     <section class="panel">
       <h2 class="panel-title">修改登录密码</h2>
       <p class="caption">
-        初始登录凭据由管理员交付。修改后，下次登录使用新密码。
+        初始登录凭据由管理员交付。修改后，所有平台登录会话失效，需要使用新密码重新登录。
       </p>
       <el-form
         ref="passwordRef"
@@ -159,6 +161,17 @@ const auth = useAuthStore(),
   savingKey = ref(false)
 const password = reactive({ old: '', next: '', confirm: '' }),
   key = reactive({ name: '', public_key: '' })
+const revoking = ref(false)
+async function revokeSessions() {
+  if (revoking.value) return
+  try {
+    await ElMessageBox.confirm('撤销所有浏览器的平台登录会话？当前浏览器也会退出，训练任务继续运行。', '撤销登录会话')
+    revoking.value = true
+    await consoleApi.revokeSessions()
+    auth.logout()
+    ElMessage.success('登录会话已撤销，请重新登录')
+  } catch(error) {reportError(error)} finally {revoking.value = false}
+}
 const keys = useRemoteData<SSHKey[]>(
   async () => (await consoleApi.keys()).data || [],
   [],
@@ -197,7 +210,8 @@ async function changePassword() {
     if (!(await passwordRef.value.validate().catch(() => false))) return
     await consoleApi.password(password.old, password.next)
     passwordRef.value.resetFields()
-    ElMessage.success('密码已修改，下次登录请使用新密码')
+    auth.logout()
+    ElMessage.success('密码已修改，请使用新密码重新登录')
   } catch (error) {
     reportError(error)
   } finally {

@@ -5,6 +5,7 @@ from kubernetes.utils.quantity import parse_quantity
 from app.core.config import settings
 from app.infrastructure.kubernetes.client import create_clients
 from app.infrastructure.kubernetes.gateway import KubernetesGateway
+from app.infrastructure.kubernetes.ephemeral_storage import storage_from_pod
 
 
 def pod_usage(allocation, namespace):
@@ -25,6 +26,7 @@ def pod_usage(allocation, namespace):
         ]
         reasons = [state.reason for state in terminated if state.reason]
         result = {
+            "ephemeral_storage": storage_from_pod(core, pod, namespace),
             "state": "missing",
             "cpu_percent": None,
             "memory_percent": None,

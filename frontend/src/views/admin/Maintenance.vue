@@ -1,8 +1,8 @@
 <template>
   <PageHeader
-    title="存储与备份"
+    title="存储与运行保障"
     eyebrow="OPERATIONS"
-    description="查看数据卷、定时备份及最近恢复验证的状态。"
+    description="查看数据卷和独立故障监测状态。"
     ><el-button @click="remote.refresh">刷新</el-button></PageHeader
   >
   <AsyncState
@@ -19,6 +19,7 @@
             storageText[remote.data.value.storage.enforcement] || '未知'
           }}
         </p>
+        <p v-if="remote.data.value.storage.volume" class="caption">数据卷已用空间占比</p>
         <el-progress
           v-if="remote.data.value.storage.volume"
           :percentage="
@@ -26,11 +27,11 @@
           "
         />
         <p class="caption">
-          个人文件与个人镜像归档共用数据卷，按用户份额限制；系统空间单独预留。计算节点提供
+          百分比表示整个数据卷的磁盘使用率，包含原有数据、个人文件及镜像归档。每用户存储额度单独计算；系统空间单独预留。计算节点提供
           CPU、内存、GPU 和临时运行环境。
         </p>
       </section>
-      <section class="panel section-gap">
+      <section v-if="remote.data.value.backup.alerts_enabled !== false" class="panel section-gap">
         <h3 class="panel-title">定时备份</h3>
         <p>状态：{{ backupText[remote.data.value.backup.state] || '未知' }}</p>
         <p>
@@ -59,6 +60,7 @@
           /data 才能恢复。
         </p>
       </section>
+      <section class="panel section-gap"><h3 class="panel-title">独立故障监测</h3><p>监测结果独立于业务接口保存。管理员收到故障弹窗后可手动关闭，同一次故障不会重复弹出。</p><a href="/ops-alerts/" target="_blank" rel="noopener noreferrer">查看独立监测记录</a></section>
     </template>
   </AsyncState>
 </template>
@@ -73,6 +75,7 @@ import AsyncState from '@/components/AsyncState.vue'
 interface Status {
   storage: { enforcement: string; volume?: { used_percent: number } }
   backup: {
+    alerts_enabled?: boolean
     state: string
     last_success_at?: string | null
     recovery_verified_at?: string | null

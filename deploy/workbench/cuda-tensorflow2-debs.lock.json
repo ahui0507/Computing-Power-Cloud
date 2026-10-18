@@ -1,0 +1,345 @@
+{
+  "repository": "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/",
+  "release_sha256": "5002c4631f018f676b74cc2f0d1a1bcc21a93e84e7a87a0a7f55bf2ae84f0190",
+  "packages_index_sha256": "6649cdd79915fb83ca6cf2d0ad88500b0bf4e16f103d587ce738c98403306fef",
+  "key_sha256": "7eb71103e32e813ea3e1c06bdb01b143f36feb8d83ecac2b0c11c9273f9e6822",
+  "signing_key_fingerprint": "EB693B3035CD5710E231E123A4B469963BF863CC",
+  "packages": [
+    {
+      "Package": "cuda-cccl-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-cccl-12-5_12.5.39-1_amd64.deb",
+      "Size": "1240888",
+      "SHA256": "41eecff528078d09b54113a00078952bd63bb33d2ee2680adf17053112c49609"
+    },
+    {
+      "Package": "cuda-nvdisasm-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-nvdisasm-12-5_12.5.39-1_amd64.deb",
+      "Size": "49898004",
+      "SHA256": "b709be1f99e72cc686bc57933c3a4b875b8dcfa3de8251b70a21713a02d9ed68"
+    },
+    {
+      "Package": "cuda-cuobjdump-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-cuobjdump-12-5_12.5.39-1_amd64.deb",
+      "Size": "219550",
+      "SHA256": "6f4166896d66f05bed68d40ae089e91d65a026c709fd1b3b5732542a28cc1d32"
+    },
+    {
+      "Package": "cuda-cuxxfilt-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-cuxxfilt-12-5_12.5.82-1_amd64.deb",
+      "Size": "190022",
+      "SHA256": "887e78d30e819223e8b3b3eaf5ab8c0f2f20c6dd141a8764a0a43524e98b8385"
+    },
+    {
+      "Package": "cuda-toolkit-config-common",
+      "Version": "13.4.92-1",
+      "Filename": "./cuda-toolkit-config-common_13.4.92-1_all.deb",
+      "Size": "17434",
+      "SHA256": "d48a133606d0b286c41cde1fc5b07da7197ccdc8291ceb7ba51cadb85552f918"
+    },
+    {
+      "Package": "cuda-toolkit-12-config-common",
+      "Version": "12.9.79-1",
+      "Filename": "./cuda-toolkit-12-config-common_12.9.79-1_all.deb",
+      "Size": "16628",
+      "SHA256": "ff767f224df30dc19faaf5b8b8f0393aadfa1ae9623aaeef7cdcbcc15b2f4271"
+    },
+    {
+      "Package": "cuda-toolkit-12-5-config-common",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-toolkit-12-5-config-common_12.5.82-1_all.deb",
+      "Size": "16456",
+      "SHA256": "a3f6f13844fb207c0dbcdc74374fe70d10cfd59fc688cf3c6a5fbac67f250092"
+    },
+    {
+      "Package": "cuda-cudart-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-cudart-12-5_12.5.82-1_amd64.deb",
+      "Size": "165746",
+      "SHA256": "6e4c47208b22048508db00fb96ba8fe288e53e7c324f964ec14b1bd453c4b2be"
+    },
+    {
+      "Package": "cuda-driver-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-driver-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "28972",
+      "SHA256": "51e6c375e5546e034931d625af597acd1787ea92a6889ef0cd6dc4d0a22faf83"
+    },
+    {
+      "Package": "cuda-cudart-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-cudart-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "1007948",
+      "SHA256": "2d05e24f843f6d1fc13a0d1bc1afd180b51672454e86316691f63fffdb122e5a"
+    },
+    {
+      "Package": "cuda-nvvm-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-nvvm-12-5_12.5.82-1_amd64.deb",
+      "Size": "19587372",
+      "SHA256": "9fc00ce7b421b84a99686492484e7abc63ba02187e9f74e0da49ef641d199af5"
+    },
+    {
+      "Package": "cuda-crt-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-crt-12-5_12.5.82-1_amd64.deb",
+      "Size": "77122",
+      "SHA256": "9b3875618df9a91c606d7b31d9f1d08288f4c96ddbf5ec0dd42f5dd17d74cffe"
+    },
+    {
+      "Package": "cuda-nvcc-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-nvcc-12-5_12.5.82-1_amd64.deb",
+      "Size": "32601492",
+      "SHA256": "ad2e4bd4eb3583142a52a9ad2326b4f0f46d2da3307a23378a17b29ce1df5a74"
+    },
+    {
+      "Package": "cuda-nvprune-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-nvprune-12-5_12.5.82-1_amd64.deb",
+      "Size": "59268",
+      "SHA256": "ad7357046b47f0ed7272c476de73a5ea5778a2deae0dc915b27dcbddb257d11a"
+    },
+    {
+      "Package": "cuda-compiler-12-5",
+      "Version": "12.5.1-1",
+      "Filename": "./cuda-compiler-12-5_12.5.1-1_amd64.deb",
+      "Size": "2510",
+      "SHA256": "d62356d028a904d3422f171d81bb658308938a1ee1bb319dd293b34c9dd25491"
+    },
+    {
+      "Package": "cuda-cupti-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-cupti-12-5_12.5.82-1_amd64.deb",
+      "Size": "16820144",
+      "SHA256": "33783fa87b1a2d33dd66ca0c566d7d15357a174b0c3360cf1b9781f077f2531a"
+    },
+    {
+      "Package": "cuda-cupti-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-cupti-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "3835140",
+      "SHA256": "23905a8c34cdcddd2af1b609a0bbd0ccaac32b7ea81163400a48e81e0eac798a"
+    },
+    {
+      "Package": "cuda-profiler-api-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-profiler-api-12-5_12.5.39-1_amd64.deb",
+      "Size": "18652",
+      "SHA256": "c3e9f094d5130d7ce58f21a0a27ac8e20a536083e2dfa809611de002d6e59308"
+    },
+    {
+      "Package": "cuda-nvrtc-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-nvrtc-12-5_12.5.82-1_amd64.deb",
+      "Size": "17763512",
+      "SHA256": "874b12dd1af8d54fc0bbfcbd62156179a6abb95c8e119bb8cbd56d99e8ec4369"
+    },
+    {
+      "Package": "cuda-nvrtc-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./cuda-nvrtc-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "16985272",
+      "SHA256": "40bb5808bd670ef7d0ad0e8f32be7db61fe5389a218c88ce079379fe4ffb80d3"
+    },
+    {
+      "Package": "cuda-opencl-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-opencl-12-5_12.5.39-1_amd64.deb",
+      "Size": "23972",
+      "SHA256": "396ed20e9912d51a741712ae95a70b631863e80c2b9f310c11f1205e4b9a80a9"
+    },
+    {
+      "Package": "cuda-opencl-dev-12-5",
+      "Version": "12.5.39-1",
+      "Filename": "./cuda-opencl-dev-12-5_12.5.39-1_amd64.deb",
+      "Size": "87716",
+      "SHA256": "87e98a63ae29b6877648f2ac8271f5cd0e12b9438bf72c3bf400a39cd09846e0"
+    },
+    {
+      "Package": "libcublas-12-5",
+      "Version": "12.5.3.2-1",
+      "Filename": "./libcublas-12-5_12.5.3.2-1_amd64.deb",
+      "Size": "240882656",
+      "SHA256": "9af2c4643bf26359e2a5f88a44a92d2d4c168848658024c1c09b31b0fc995eae"
+    },
+    {
+      "Package": "libcublas-dev-12-5",
+      "Version": "12.5.3.2-1",
+      "Filename": "./libcublas-dev-12-5_12.5.3.2-1_amd64.deb",
+      "Size": "258963070",
+      "SHA256": "17a048c626ed115748d0749472ffdc6bba48810254609378db5ce66e5a6d5a8c"
+    },
+    {
+      "Package": "libcufft-12-5",
+      "Version": "11.2.3.61-1",
+      "Filename": "./libcufft-12-5_11.2.3.61-1_amd64.deb",
+      "Size": "152528644",
+      "SHA256": "045ae03d0d65d0fccda15b2e28bf1181ba539f8ebf607c9c2153f2f68a589de9"
+    },
+    {
+      "Package": "libcufft-dev-12-5",
+      "Version": "11.2.3.61-1",
+      "Filename": "./libcufft-dev-12-5_11.2.3.61-1_amd64.deb",
+      "Size": "305255440",
+      "SHA256": "9b981e93f677e1998b910321a80e71a3b063a00ab1c3bcee6473060fae042ea4"
+    },
+    {
+      "Package": "libcufile-12-5",
+      "Version": "1.10.1.7-1",
+      "Filename": "./libcufile-12-5_1.10.1.7-1_amd64.deb",
+      "Size": "845002",
+      "SHA256": "d7e38a732d08fbccf41c7129cb6bbd81143d24ddaaa73593dae55fe3a7014476"
+    },
+    {
+      "Package": "libcufile-dev-12-5",
+      "Version": "1.10.1.7-1",
+      "Filename": "./libcufile-dev-12-5_1.10.1.7-1_amd64.deb",
+      "Size": "2451166",
+      "SHA256": "abd7d06109f18396bacf7abe78319f2ee4c0b83d6eff01511c3367c517bcf32c"
+    },
+    {
+      "Package": "libcurand-12-5",
+      "Version": "10.3.6.82-1",
+      "Filename": "./libcurand-12-5_10.3.6.82-1_amd64.deb",
+      "Size": "41399520",
+      "SHA256": "9337862c95fe00fd769fbfce099916bb664938819c86915eda0c17e7cac29d75"
+    },
+    {
+      "Package": "libcurand-dev-12-5",
+      "Version": "10.3.6.82-1",
+      "Filename": "./libcurand-dev-12-5_10.3.6.82-1_amd64.deb",
+      "Size": "41630748",
+      "SHA256": "ed555506c77c99a37187b688f796ed80d1aa97220d59e977ae69cd19aceb81dc"
+    },
+    {
+      "Package": "libcusolver-12-5",
+      "Version": "11.6.3.83-1",
+      "Filename": "./libcusolver-12-5_11.6.3.83-1_amd64.deb",
+      "Size": "81281696",
+      "SHA256": "9035c344e4c433912d587afe00c2bd376dbac792c03cd890bc380315cb6ff8a9"
+    },
+    {
+      "Package": "libcusolver-dev-12-5",
+      "Version": "11.6.3.83-1",
+      "Filename": "./libcusolver-dev-12-5_11.6.3.83-1_amd64.deb",
+      "Size": "51967500",
+      "SHA256": "a20cc137f9775a8e9c0f62aa56bade9b26ec5be343afca0d2308af5d9bb0e7f2"
+    },
+    {
+      "Package": "libcusparse-12-5",
+      "Version": "12.5.1.3-1",
+      "Filename": "./libcusparse-12-5_12.5.1.3-1_amd64.deb",
+      "Size": "119872424",
+      "SHA256": "422dfaeace5b089e2c4f5b57e2cad62ddcf2a776ae19bf241f4ca6d73478ee65"
+    },
+    {
+      "Package": "libcusparse-dev-12-5",
+      "Version": "12.5.1.3-1",
+      "Filename": "./libcusparse-dev-12-5_12.5.1.3-1_amd64.deb",
+      "Size": "123194380",
+      "SHA256": "050c4f7db92813d3cdcd8f397e85634870bcffbe18a983145dfa248ddc15d764"
+    },
+    {
+      "Package": "libnpp-12-5",
+      "Version": "12.3.0.159-1",
+      "Filename": "./libnpp-12-5_12.3.0.159-1_amd64.deb",
+      "Size": "95855732",
+      "SHA256": "e6e590adcfdc3cdca7a2b76074bbe2d85a4d07de393249d7ee09e52c383e6130"
+    },
+    {
+      "Package": "libnpp-dev-12-5",
+      "Version": "12.3.0.159-1",
+      "Filename": "./libnpp-dev-12-5_12.3.0.159-1_amd64.deb",
+      "Size": "92150264",
+      "SHA256": "c20c2caf4613ca8df1fddcbabf3686d025d1b0d182608a00f136d5a7776d6999"
+    },
+    {
+      "Package": "libnvjitlink-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./libnvjitlink-12-5_12.5.82-1_amd64.deb",
+      "Size": "15724916",
+      "SHA256": "0cce49a5c4c9b800c510b91b35eadd4f4daa846b03d07d560a5bea6139458deb"
+    },
+    {
+      "Package": "libnvjitlink-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./libnvjitlink-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "14082096",
+      "SHA256": "4f5e2b801f6cb05c81f3a377113d26fb66129389b731549639e0d85d72961148"
+    },
+    {
+      "Package": "libnvfatbin-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./libnvfatbin-12-5_12.5.82-1_amd64.deb",
+      "Size": "732974",
+      "SHA256": "b0c7e1184b7cda21d3d3977b40726f71b51d2c125ccef342803e12feadbdb147"
+    },
+    {
+      "Package": "libnvfatbin-dev-12-5",
+      "Version": "12.5.82-1",
+      "Filename": "./libnvfatbin-dev-12-5_12.5.82-1_amd64.deb",
+      "Size": "606390",
+      "SHA256": "4ff9f051eab12ba99c21eee2ab7b18d992d3db87e5d599de66c3735f595e0e13"
+    },
+    {
+      "Package": "libnvjpeg-12-5",
+      "Version": "12.3.2.81-1",
+      "Filename": "./libnvjpeg-12-5_12.3.2.81-1_amd64.deb",
+      "Size": "2331678",
+      "SHA256": "fab970d55a20dd249fd5b2695e73de749a066001a9a29fee60d8f0ec2f962e43"
+    },
+    {
+      "Package": "libnvjpeg-dev-12-5",
+      "Version": "12.3.2.81-1",
+      "Filename": "./libnvjpeg-dev-12-5_12.3.2.81-1_amd64.deb",
+      "Size": "2028610",
+      "SHA256": "21f71f341e5b9236be6f8d1219209b5d3c75d9c601bbfb022b104b3662ae70b8"
+    },
+    {
+      "Package": "cuda-libraries-dev-12-5",
+      "Version": "12.5.1-1",
+      "Filename": "./cuda-libraries-dev-12-5_12.5.1-1_amd64.deb",
+      "Size": "2650",
+      "SHA256": "e783ad8e20c795ddf3bf08000d1e285174b34b963a28067a601405ea56c1b471"
+    },
+    {
+      "Package": "cuda-minimal-build-12-5",
+      "Version": "12.5.1-1",
+      "Filename": "./cuda-minimal-build-12-5_12.5.1-1_amd64.deb",
+      "Size": "2530",
+      "SHA256": "d4868f0e1b58579b2f80cc1bdf23b6fab90bcda2696c2ef6a114ea30654fd804"
+    },
+    {
+      "Package": "libcudnn9-cuda-12",
+      "Version": "9.3.0.75-1",
+      "Filename": "./libcudnn9-cuda-12_9.3.0.75-1_amd64.deb",
+      "Size": "380510032",
+      "SHA256": "73db193214fb5e00ed3e7db8427b8bc8660b77310b6c9f877f788d33376a65af"
+    },
+    {
+      "Package": "libcudnn9-dev-cuda-12",
+      "Version": "9.3.0.75-1",
+      "Filename": "./libcudnn9-dev-cuda-12_9.3.0.75-1_amd64.deb",
+      "Size": "34086",
+      "SHA256": "3db5759379042361b2f79273376818834bdc7f18b4f984654f8c90487d7469e9"
+    },
+    {
+      "Package": "libnccl2",
+      "Version": "2.21.5-1+cuda12.5",
+      "Filename": "./libnccl2_2.21.5-1+cuda12.5_amd64.deb",
+      "Size": "114480736",
+      "SHA256": "1d5a85312df00c4df405ec509c6cb6905b3def119a52b8acd612e05ce3ba273f"
+    },
+    {
+      "Package": "libnccl-dev",
+      "Version": "2.21.5-1+cuda12.5",
+      "Filename": "./libnccl-dev_2.21.5-1+cuda12.5_amd64.deb",
+      "Size": "113409272",
+      "SHA256": "588e68a872e66840741d6a4fff9caff1f22124596692fd483441fce68014e7c8"
+    }
+  ]
+}

@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 from app.core.workspace import LEGACY_LAYOUT, SEPARATE_LAYOUT, persistent_path
 from app.infrastructure.kubernetes.shell_runtime import SHELL_SETUP
 from app.infrastructure.kubernetes.ssh_runtime import SSH_PASSWORD_SETUP
+from app.infrastructure.kubernetes.isolation import harden_pod
 
 
 SSH_START = r"""set -eu
@@ -70,7 +71,10 @@ class WorkloadSpec:
     cpu_cores: int | None = None
     cpu_millicores: int | None = None
     ram_mb: int | None = None
+    ephemeral_storage_gib: int | None = None
     storage_layout: str = LEGACY_LAYOUT
+    isolation_enabled: bool = False
+    isolation_policy_sha256: str = ""
 
     @property
     def auth_secret_name(self) -> str:
@@ -104,6 +108,10 @@ def build_pod(spec: WorkloadSpec) -> dict:
         gpu_resources["cpu"] = str(spec.cpu_cores)
     if spec.ram_mb is not None:
         gpu_resources["memory"] = f"{spec.ram_mb}Mi"
+    if spec.ephemeral_storage_gib is not None:
+        if spec.ephemeral_storage_gib < 1:
+            raise ValueError("Temporary storage budget must be positive")
+        gpu_resources["ephemeral-storage"] = f"{spec.ephemeral_storage_gib}Gi"
     base_url = spec.jupyter_path if spec.ingress_enabled else "/"
     manifest = {
         "apiVersion": "v1",
@@ -202,7 +210,7 @@ def build_pod(spec: WorkloadSpec) -> dict:
         container["volumeMounts"][0]["mountPath"] = persistent_path(
             {"storage_layout": spec.storage_layout}
         )
-        manifest["spec"]["volumes"].append({"name": "platform-shell", "emptyDir": {}})
+        manifest["spec"]["volumes"].append({"name": "platform-shell", "emptyDir": {"sizeLimit": "256Mi"} if spec.ephemeral_storage_gib is not None else {}})
         container["volumeMounts"].append(
             {"name": "platform-shell", "mountPath": "/run/platform-shell"}
         )
@@ -249,6 +257,13 @@ def build_pod(spec: WorkloadSpec) -> dict:
             )
             start = "set -eu\npython -c " + shlex.quote(SHELL_SETUP) + "\n" + enhanced
         container["command"] = ["/bin/bash", "-c", start, "platform-start", spec.jupyter_command]
+    if spec.ephemeral_storage_gib is not None:
+        for volume in manifest["spec"]["volumes"]:
+            if "emptyDir" in volume and volume["emptyDir"].get("medium") != "Memory":
+                volume["emptyDir"]["sizeLimit"] = "256Mi"
+    if spec.isolation_enabled:
+        harden_pod(manifest)
+        manifest["spec"]["nodeSelector"]["cpcloud.io/tenant-isolation"] = "v1"
     return manifest
 
 

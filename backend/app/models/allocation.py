@@ -58,6 +58,8 @@ class Allocation(Base):
     last_observed_at = Column(DateTime(timezone=True), nullable=True, comment="最后成功观测时间")
     last_reconciled_at = Column(DateTime(timezone=True), nullable=True, comment="最后后台核对时间")
     ready_at = Column(DateTime(timezone=True), nullable=True, comment="首次交互服务就绪时间")
+    release_after_hours = Column(Integer, nullable=True, comment="首次就绪后定时释放小时数")
+    scheduled_release_at = Column(DateTime(timezone=True), nullable=True, index=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, comment="用户ID")
     project_id = Column(BigInteger, ForeignKey("projects.id"), nullable=True, comment="项目ID")
     pool_id = Column(Integer, ForeignKey("resource_pools.id"), nullable=True, comment="资源池ID")

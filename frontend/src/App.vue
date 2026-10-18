@@ -1,9 +1,10 @@
 <template>
   <router-view />
+  <AdminFaultAlerts />
 </template>
 
 <script setup lang="ts">
-// App根组件
+import AdminFaultAlerts from '@/components/AdminFaultAlerts.vue'
 </script>
 
 <style scoped>

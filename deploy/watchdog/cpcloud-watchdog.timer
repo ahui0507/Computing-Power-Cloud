@@ -1,0 +1,11 @@
+[Unit]
+Description=Check CPCloud independently every thirty seconds
+
+[Timer]
+OnBootSec=120s
+OnUnitInactiveSec=30s
+AccuracySec=2s
+Unit=cpcloud-watchdog.service
+
+[Install]
+WantedBy=timers.target

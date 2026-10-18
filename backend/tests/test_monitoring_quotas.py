@@ -257,6 +257,7 @@ def test_collector_key_payload_replay_and_gpu_binding(client, db):
         is False
     )
     assert db.query(NodeMetric).count() == 1
+
     data = payload()
     data["cpu_usage"] = 101
     assert client.post("/internal/telemetry", json=data, headers=headers).status_code == 422
@@ -451,3 +452,19 @@ def test_unmanaged_gpu_usage_is_visible_and_excluded_from_new_requests(client, d
     assert snapshot["gpu_list"][0]["status"] == "external"
     assert snapshot["schedulable"] is False
     assert ResourceService.get_summary(db)["free_gpus"] == 0
+
+
+def test_market_uses_collected_architecture_instead_of_stale_registered_value(client, db):
+    from app.models import GPUType
+    gpu_type = db.get(GPUType, 1)
+    gpu_type.code = "A100"
+    gpu_type.compute_capability = "3.7"
+    db.commit()
+    data = payload()
+    for gpu in data["gpus"]:
+        gpu["compute_capability"] = "8.0"
+    assert client.post("/internal/telemetry", json=data, headers=token(db)).status_code == 200
+    pool = client.get("/resource/pools").json()["data"][0]
+    assert pool["compute_capability"] == "8.0"
+    assert pool["architecture"] == "Ampere"
+    assert pool["cuda_arch_max"] == "13.x（仍受支持）"

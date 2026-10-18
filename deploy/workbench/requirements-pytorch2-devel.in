@@ -1,0 +1,14 @@
+# torch 2.5.1+cu124, torchvision 0.20.1+cu124 and torchaudio 2.5.1+cu124
+# are supplied by the digest-pinned official base and checked by the verifier.
+jupyterlab==4.2.5
+numpy==1.26.4
+ninja==1.13.0
+pandas==2.2.3
+scipy==1.14.1
+scikit-learn==1.5.2
+matplotlib==3.9.2
+tqdm==4.66.5
+tensorboard==2.18.0
+pillow==10.2.0
+# Keep the setuptools APIs used by this PyTorch generation's extension tools.
+setuptools==75.1.0

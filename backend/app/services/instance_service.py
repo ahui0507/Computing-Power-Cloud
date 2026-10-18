@@ -1,6 +1,6 @@
 """实例状态同步与 API 投影，集中管理申请和运行状态之间的映射。"""
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 import re
 
@@ -78,6 +78,8 @@ class InstanceService:
         if status == "running":
             allocation.status = AllocationStatus.ACTIVE
             allocation.ready_at = allocation.ready_at or datetime.utcnow()
+            if allocation.release_after_hours and allocation.scheduled_release_at is None:
+                allocation.scheduled_release_at = allocation.ready_at + timedelta(hours=allocation.release_after_hours)
             if instance:
                 instance.status = InstanceStatus.RUNNING
                 instance.stopped_at = None
@@ -130,6 +132,7 @@ class InstanceService:
             cpu_cores=allocation.cpu_quota_cores,
             node_gpu_count=allocation.node_gpu_count,
             ram_mb=allocation.ram_mb,
+            ephemeral_storage_gib=options.get("ephemeral_storage_gib"),
             image=allocation.image_name or "unknown",
             status=status,
             start_time=utc_iso(allocation.start_time),
@@ -143,6 +146,8 @@ class InstanceService:
             if allocation.package_amount is not None
             else None,
             package_expires_at=utc_iso(allocation.package_expires_at),
+            scheduled_release_at=utc_iso(allocation.scheduled_release_at),
+            release_after_hours=allocation.release_after_hours,
             package_refunded=allocation.package_refunded_at is not None,
             settled_amount=sum(
                 float(record.amount) for record in allocation.billing_records if record.settled

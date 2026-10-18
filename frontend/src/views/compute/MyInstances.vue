@@ -42,6 +42,7 @@
     </div>
   </div>
   <InstanceList />
+  <ResourceQueue />
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'
@@ -52,6 +53,7 @@ import { useBillingStore } from '@/stores/billing'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
 import PageHeader from '@/components/PageHeader.vue'
 import InstanceList from '@/components/InstanceList.vue'
+import ResourceQueue from '@/components/ResourceQueue.vue'
 import { instanceRate } from '@/utils/instance'
 const store = useResourceStore(),
   auth = useAuthStore(),

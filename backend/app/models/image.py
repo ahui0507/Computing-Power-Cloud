@@ -23,6 +23,7 @@ class Image(Base):
 
     id = Column(BigInteger, primary_key=True, index=True, comment="镜像ID")
     name = Column(String(255), nullable=False, comment="镜像名称")
+    display_name = Column(String(128), nullable=True, comment="界面显示名称，不改变容器镜像地址")
     tag = Column(String(100), default="latest", nullable=False, comment="标签")
     repo = Column(String(500), nullable=True, comment="仓库地址")
     desc = Column("description", Text, nullable=True, comment="描述")

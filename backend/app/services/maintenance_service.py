@@ -35,4 +35,5 @@ class MaintenanceService:
             }
         except (OSError, ValueError, TypeError):
             pass
+        backup["alerts_enabled"] = settings.BACKUP_ALERTS_ENABLED
         return {"storage": storage, "backup": backup}

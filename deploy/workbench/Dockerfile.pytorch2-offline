@@ -1,0 +1,18 @@
+ARG BASE_IMAGE=pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+FROM ${BASE_IMAGE}
+USER root
+COPY offline-debs /opt/offline/debs
+COPY wheels /opt/offline/wheels
+COPY requirements-pytorch2.lock /opt/offline/requirements-pytorch2.lock
+COPY SHA256SUMS /opt/offline/SHA256SUMS
+RUN cd /opt/offline && sha256sum -c SHA256SUMS \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install /opt/offline/debs/*.deb \
+    && python -m pip install --no-index --find-links=/opt/offline/wheels --require-hashes -r /opt/offline/requirements-pytorch2.lock \
+    && python -m pip check \
+    && rm -rf /opt/offline /var/lib/apt/lists/* /etc/ssh/ssh_host_* \
+    && mkdir -p /run/sshd /workspace /data
+COPY verify_pytorch2.py /usr/local/share/campus-workbench/verify_pytorch2.py
+RUN python /usr/local/share/campus-workbench/verify_pytorch2.py
+WORKDIR /workspace
+EXPOSE 8888 22
+CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

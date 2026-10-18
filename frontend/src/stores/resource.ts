@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { ResourcePool, Container, ApplyResourceRequest } from '@/types'
 import { resourceApi } from '@/api'
+import type { ReleaseConfirmation } from '@/api/resource'
 import {
   applicationKey,
   finishApplication,
@@ -52,7 +53,7 @@ export const useResourceStore = defineStore('resource', () => {
       if (scope !== sessionRevision()) return
       if (response.data) {
         finishApplication(data)
-        await Promise.allSettled([instanceData.fetch(), poolData.fetch(), ...(historyFetched.value ? [historyData.fetch()] : [])])
+        void Promise.allSettled([instanceData.fetch(), poolData.fetch(), ...(historyFetched.value ? [historyData.fetch()] : [])])
         return response.data
       }
     } catch (error) {
@@ -68,12 +69,12 @@ export const useResourceStore = defineStore('resource', () => {
       if (scope === sessionRevision()) applying.value = false
     }
   }
-  async function releaseResource(containerId: string) {
+  async function releaseResource(containerId: string, confirmation?: ReleaseConfirmation) {
     const scope = sessionRevision()
     if (releasingIds.value.includes(containerId)) return 'releasing'
     releasingIds.value.push(containerId)
     try {
-      const response = await resourceApi.release(containerId)
+      const response = await resourceApi.release(containerId, confirmation)
       if (scope === sessionRevision())
         await Promise.allSettled([instanceData.fetch(), poolData.fetch(), ...(historyFetched.value ? [historyData.fetch()] : [])])
       return response.data?.status

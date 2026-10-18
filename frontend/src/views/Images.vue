@@ -42,7 +42,7 @@
             >{{ tab === 'public' ? '公共环境' : '个人目录' }}</el-tag
           >
         </div>
-        <h2 style="font-size: 15px">{{ image.name }}</h2>
+        <h2 style="font-size: 15px">{{ image.display_name || image.name }}</h2>
         <span class="mono muted">{{ image.tag }}</span>
         <p class="caption">
           {{ image.supports_ssh ? 'JupyterLab · SSH / SFTP' : 'JupyterLab'
@@ -158,7 +158,7 @@ const rules = {
 const filtered = computed(() =>
   (tab.value === 'public' ? images.publicImages : images.myImages).filter(
     (image) =>
-      `${image.name}:${image.tag} ${image.desc}`
+      `${image.display_name || ''} ${image.name}:${image.tag} ${image.desc}`
         .toLowerCase()
         .includes(search.value.toLowerCase()),
   ),

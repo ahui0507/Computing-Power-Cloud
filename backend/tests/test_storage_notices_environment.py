@@ -115,9 +115,39 @@ def test_examples_are_unique_and_preserve_existing_files(client, workspace):
     first = client.post("/storage/examples/training").json()["data"]
     second = client.post("/storage/examples/training").json()["data"]
     assert first["folder"] != second["folder"]
+    assert first["framework"] == "pytorch"
     assert (workspace / "user_1" / first["folder"] / "train.py").is_file()
     assert "torchrun" in first["multi_command"] and "<申请的GPU数量>" in first["multi_command"]
+    assert "torchrun" in first["multi_resume_command"] and "--resume" in first["multi_resume_command"]
     assert client.post("/storage/folder", json={"path": first["folder"]}).status_code == 409
+
+
+def test_tensorflow_example_generates_its_own_script_and_recovery_commands(client, workspace):
+    response = client.post("/storage/examples/training", json={"framework": "tensorflow"})
+    assert response.status_code == 200
+    result = response.json()["data"]
+    assert result["framework"] == "tensorflow"
+    assert result["folder"].startswith("training-tensorflow-")
+    source = (workspace / "user_1" / result["folder"] / "train.py").read_text(encoding="utf-8")
+    assert "import tensorflow as tf" in source and "import torch" not in source
+    compile(source, "generated_tensorflow_train.py", "exec")
+    assert "--gpus 1" in result["single_command"]
+    assert "--gpus <申请的GPU数量>" in result["multi_command"]
+    assert "--resume --epochs 10" in result["resume_command"]
+    assert "--gpus <申请的GPU数量>" in result["multi_resume_command"]
+    for key in ("single_command", "multi_command", "resume_command", "multi_resume_command"):
+        assert "/data/" + result["folder"] + "/train.py" in result[key]
+        assert "checkpoint-tensorflow" in result[key]
+        assert "torchrun" not in result[key]
+
+
+@pytest.mark.parametrize("framework", ["../../secrets", "keras", 123, None])
+def test_invalid_training_framework_does_not_create_files(client, workspace, framework):
+    folder = workspace / "user_1"
+    before = set(folder.iterdir()) if folder.exists() else set()
+    response = client.post("/storage/examples/training", json={"framework": framework})
+    assert response.status_code == 422
+    assert (set(folder.iterdir()) if folder.exists() else set()) == before
 
 
 def test_diagnostics_enforce_ownership_and_running_state(client, db, monkeypatch):

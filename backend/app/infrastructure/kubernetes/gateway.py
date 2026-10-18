@@ -4,6 +4,10 @@ import logging
 import time
 
 from kubernetes.client.exceptions import ApiException
+from kubernetes.client import ApiClient
+from app.infrastructure.kubernetes.isolation import (
+    POLICY_NAME, SERVICE_ACCOUNT, hardened_pod_matches, policy_digest,
+)
 
 from app.core.config import settings
 from app.core.exceptions import ClusterOperationError, ClusterUnavailableError
@@ -82,6 +86,8 @@ class KubernetesGateway:
             if kind == "secret" and (resource.data or {}).get("token") != manifest["data"]["token"]:
                 raise ClusterOperationError("已有实例凭证与当前配置不同", cleanup_attempted=True)
             if kind == "pod":
+                if spec.isolation_enabled and not hardened_pod_matches(resource, manifest):
+                    raise ClusterOperationError("已有 Pod 不满足租户隔离配置，保留资源等待核对", cleanup_attempted=True)
                 container = resource.spec.containers[0]
                 count = (container.resources.limits or {}).get("nvidia.com/gpu")
                 if (
@@ -96,6 +102,12 @@ class KubernetesGateway:
                     None,
                 )
                 mounts = container.volume_mounts or []
+                if spec.ephemeral_storage_gib is not None:
+                    from kubernetes.utils.quantity import parse_quantity
+                    expected_disk = spec.ephemeral_storage_gib * 1024**3
+                    for values in (container.resources.requests or {}, container.resources.limits or {}):
+                        if parse_quantity(values.get("ephemeral-storage", "0")) != expected_disk:
+                            raise ClusterOperationError("已有 Pod 的临时磁盘限额与申请不同", cleanup_attempted=True)
                 if (
                     spec.cpu_millicores is not None
                     or spec.cpu_cores is not None
@@ -174,8 +186,34 @@ class KubernetesGateway:
                     )
             return resource
 
+    def _verify_isolation(self, spec):
+        if spec.namespace == "default" or not spec.isolation_policy_sha256:
+            raise ClusterUnavailableError("租户隔离 namespace 或策略摘要尚未配置")
+        try:
+            namespace = self.core.read_namespace(spec.namespace, _request_timeout=self.timeout)
+            labels = namespace.metadata.labels or {}
+            if labels.get("cpcloud.io/tenant-namespace") != "true" or labels.get("pod-security.kubernetes.io/enforce") != "baseline":
+                raise ValueError("Namespace boundary is missing")
+            account = self.core.read_namespaced_service_account(SERVICE_ACCOUNT, spec.namespace, _request_timeout=self.timeout)
+            if account.automount_service_account_token is not False:
+                raise ValueError("Cluster credential mount is enabled")
+            policies = self.networking.list_namespaced_network_policy(spec.namespace, _request_timeout=self.timeout).items
+            if len(policies) != 1 or policies[0].metadata.name != POLICY_NAME:
+                raise ValueError("Unexpected additive network policies")
+            with ApiClient() as serializer:
+                actual = serializer.sanitize_for_serialization(policies[0].spec)
+            if policy_digest(actual) != spec.isolation_policy_sha256:
+                raise ValueError("Network boundary changed")
+            node = self.core.read_node(spec.node_name, _request_timeout=self.timeout)
+            if (node.metadata.labels or {}).get("cpcloud.io/tenant-isolation") != "v1":
+                raise ValueError("Node isolation guard is missing")
+        except Exception as error:
+            raise ClusterUnavailableError("租户隔离边界未就绪，请联系管理员核对策略和节点") from error
+
     def create(self, spec: WorkloadSpec) -> dict:
         self.namespace = spec.namespace
+        if spec.isolation_enabled:
+            self._verify_isolation(spec)
         try:
             claim = self.core.read_namespaced_persistent_volume_claim(
                 name=spec.workspace_claim,

@@ -33,6 +33,6 @@ export const adminNavigation = {
     { path: '/admin/users', title: '用户管理', icon: 'UserFilled' },
     { path: '/admin/pools', title: '资源池管理', icon: 'Grid' },
     { path: '/admin/audit', title: '操作审计', icon: 'DocumentChecked' },
-    { path: '/admin/maintenance', title: '存储与备份', icon: 'Files' },
+    { path: '/admin/maintenance', title: '存储与运行保障', icon: 'Files' },
   ],
 }

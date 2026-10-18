@@ -1,0 +1,39 @@
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE}
+USER root
+ENV PATH="/opt/conda/bin:/usr/local/cuda/bin:${PATH}" \
+    CUDA_HOME=/usr/local/cuda LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
+    NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    KERAS_BACKEND=tensorflow TF_CPP_MIN_LOG_LEVEL=2 \
+    XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/local/cuda
+COPY tensorflow2-base.lock.json cuda-tensorflow2-debs.lock.json requirements-tensorflow2.lock /usr/local/share/campus-workbench/
+RUN --mount=type=bind,source=offline-debs,target=/opt/offline/debs,readonly \
+    --mount=type=bind,source=wheels,target=/opt/offline/wheels,readonly \
+    --mount=type=bind,source=SHA256SUMS,target=/opt/offline/SHA256SUMS,readonly \
+    --mount=type=bind,source=miniconda.sh,target=/opt/offline/miniconda.sh,readonly \
+    --mount=type=bind,source=requirements-tensorflow2.lock,target=/opt/offline/requirements-tensorflow2.lock,readonly \
+    cd /opt/offline && sha256sum -c SHA256SUMS \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install /opt/offline/debs/*.deb \
+    && bash /opt/offline/miniconda.sh -b -p /opt/conda \
+    && conda clean --all --yes \
+    && python -m pip install --no-cache-dir --no-index --find-links=/opt/offline/wheels --require-hashes -r /opt/offline/requirements-tensorflow2.lock \
+    && python -m pip check \
+    && mkdir -p /run/sshd /workspace /data \
+    && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_*
+COPY verify_tensorflow2.py /usr/local/share/campus-workbench/verify_tensorflow2.py
+COPY clean-public-image.sh /usr/local/share/campus-workbench/clean-public-image.sh
+RUN printf '#!/bin/sh\nexec /opt/conda/bin/python /usr/local/share/campus-workbench/verify_tensorflow2.py "$@"\n' > /usr/local/bin/campus-check \
+    && chmod 755 /usr/local/bin/campus-check \
+    && printf 'case "$-" in *i*) . /opt/conda/etc/profile.d/conda.sh ;; esac\n' > /etc/profile.d/campus-conda.sh \
+    && printf '\n. /opt/conda/etc/profile.d/conda.sh\n' >> /etc/bash.bashrc \
+    && campus-check --compile-cuda \
+    && python -m pip freeze > /usr/local/share/campus-workbench/python-packages.txt \
+    && dpkg-query -W > /usr/local/share/campus-workbench/linux-packages.txt \
+    && sh /usr/local/share/campus-workbench/clean-public-image.sh
+LABEL org.opencontainers.image.title="TensorFlow CUDA development workbench" \
+      org.opencontainers.image.version="tensorflow2-devel-20261017" \
+      campus.python="3.11" campus.tensorflow="2.18.1" campus.cuda="12.5" campus.cuda.devel="true"
+WORKDIR /workspace
+EXPOSE 8888 22
+CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

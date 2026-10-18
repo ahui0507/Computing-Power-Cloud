@@ -42,7 +42,7 @@
           ><template #default="{ row }"
             ><span class="mono">¥{{ row.balance.toFixed(4) }}</span></template
           ></el-table-column
-        ><el-table-column label="GPU / 实例配额" width="180"
+        ><el-table-column label="并发配额（已用 / 上限）" width="210"
           ><template #default="{ row }"
             ><span
               >{{ row.quota?.used_gpus ?? '—' }} /

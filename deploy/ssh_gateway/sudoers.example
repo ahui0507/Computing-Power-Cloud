@@ -1,0 +1,2 @@
+# Install with mode 0440 after validating with visudo -cf.
+CPCloud ALL=(root) NOPASSWD: /usr/local/sbin/platform-ssh-gateway ensure *

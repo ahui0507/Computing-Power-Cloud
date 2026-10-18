@@ -53,8 +53,14 @@ def test_password_shadow_is_ephemeral_and_repeated_setup_is_safe(tmp_path):
     ("campus.example.edu", "campus.example.edu"),
     ("192.0.2.2:64022", "192.0.2.2"),
 ])
-def test_connection_without_public_keys_returns_password_after_runtime_sync(db, monkeypatch, public_host, ssh_host):
+@pytest.mark.parametrize("jump_host", [None, "operator@bastion.example.edu:64022"])
+@pytest.mark.parametrize("gateway_enabled", [False, True])
+def test_connection_without_public_keys_returns_password_after_runtime_sync(db, monkeypatch, public_host, ssh_host, jump_host, gateway_enabled):
     from app.services import ssh_service
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "SSH_JUMP_HOST", jump_host)
+    monkeypatch.setattr(settings, "SSH_GATEWAY_ENABLED", gateway_enabled)
+    monkeypatch.setattr(settings, "SSH_GATEWAY_ENDPOINT", "campus.example.edu:64022")
     row = Allocation(request_id="password-ssh", user_id=1, node_id=1, pool_id=1, image_id=1,
         requested_gpu_count=1, gpu_type_id=1, status=AllocationStatus.ACTIVE,
         container_id="ssh-owned", pod_name="pod-password", ssh_port=31022)
@@ -69,11 +75,24 @@ def test_connection_without_public_keys_returns_password_after_runtime_sync(db, 
     monkeypatch.setattr(ssh_service, "create_clients", lambda: (core, network))
     execute = MagicMock(return_value="SSH_PASSWORD_READY")
     monkeypatch.setattr(JobService, "execute", execute)
+    ensure = MagicMock(side_effect=lambda allocation: f"cpjump-{allocation.id}")
+    monkeypatch.setattr(ssh_service.SSHGatewayService, "ensure", ensure)
     response = SSHService.connection(db, 1, row.container_id)
     assert response["password"] == ssh_password(row.id, 1)
     assert response["key_count"] == 0 and response["auth_type"] == "password"
-    assert response["host"] == ssh_host
-    assert response["command"] == f"ssh -p 31022 root@{ssh_host}"
+    if gateway_enabled:
+        assert response["jump_host"] == f"cpjump-{row.id}@campus.example.edu:64022"
+        assert response["command"] == f"ssh -J cpjump-{row.id}@campus.example.edu:64022 -p 31022 root@127.0.0.1"
+        assert response["jump_uses_instance_password"] is True
+        ensure.assert_called_once_with(row)
+    elif jump_host:
+        assert response["jump_host"] == jump_host
+        assert response["host"] == "127.0.0.1"
+        assert response["command"] == f"ssh -J {jump_host} -p 31022 root@127.0.0.1"
+    else:
+        assert response["jump_host"] is None
+        assert response["host"] == ssh_host
+        assert response["command"] == f"ssh -p 31022 root@{ssh_host}"
     assert response["password"] not in execute.call_args.args[1]
     with pytest.raises(ResourceNotFoundError):
         SSHService.connection(db, 2, row.container_id)

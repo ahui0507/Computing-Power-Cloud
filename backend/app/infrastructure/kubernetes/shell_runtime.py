@@ -34,7 +34,7 @@ export SHELL=/bin/bash
 export USER="$(id -un)"
 export LOGNAME="$USER"
 umask 0002
-PS1='\u@\h:\w\$ '
+PS1='\u@Ubuntu:\w\$ '
 if [ -r /usr/share/bash-completion/bash_completion ] && [ -z "${BASH_COMPLETION_VERSINFO:-}" ]; then
     . /usr/share/bash-completion/bash_completion
 fi

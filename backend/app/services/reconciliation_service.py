@@ -154,8 +154,13 @@ class ReconciliationService:
         from app.services.package_service import PackageService
 
         ImageService.reconcile_saves(db)
+        from app.services.release_schedule_service import ReleaseScheduleService
+        ReleaseScheduleService.expire(db)
         PackageService.expire(db)
         await DebtService.run_once(db)
+        from app.models.platform_improvements import LoginThrottle
+        db.query(LoginThrottle).filter(LoginThrottle.window_start < datetime.utcnow() - timedelta(days=1)).delete(synchronize_session=False)
+        db.commit()
         limit = settings.RECONCILIATION_BATCH_SIZE
         ReconciliationService.recover_legacy(db, limit)
         now = datetime.utcnow()
@@ -299,9 +304,17 @@ class ReconciliationService:
             from app.services.notice_service import NoticeService
 
             NoticeService.refresh(db)
+            from app.services.operational_alert_service import OperationalAlertService
+            OperationalAlertService.refresh(db)
         except Exception:
             db.rollback()
             logger.exception("站内提醒刷新失败")
+        try:
+            from app.services.resource_queue_service import ResourceQueueService
+            await ResourceQueueService.run_once(db)
+        except Exception:
+            db.rollback()
+            logger.exception("排队申请调度失败")
         return summary
 
 
@@ -313,9 +326,16 @@ def run_reconciliation_once(session_factory=SessionLocal):
 async def reconciliation_loop(stop_event):
     while not stop_event.is_set():
         try:
+            from app.core.worker_heartbeat import record_worker_cycle
+            record_worker_cycle('running')
             # Session 及同步 SQL 全部留在该线程，不阻塞 API 事件循环。
-            await asyncio.to_thread(run_reconciliation_once)
+            summary = await asyncio.to_thread(run_reconciliation_once)
+            record_worker_cycle('degraded' if summary.get('errors') else 'ok', summary=summary)
         except Exception:
+            try:
+                record_worker_cycle('error')
+            except Exception:
+                logger.exception("后台进度记录失败")
             logger.exception("后台对账周期执行失败")
         try:
             await asyncio.wait_for(stop_event.wait(), settings.RECONCILIATION_INTERVAL_SECONDS)

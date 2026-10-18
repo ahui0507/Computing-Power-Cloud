@@ -1,0 +1,17 @@
+# Online alternative; this site builds Dockerfile.pytorch2-offline using verified local downloads.
+ARG BASE_IMAGE=pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime@sha256:c8268a92a69bd500f8be0e665b2630ee006dadaf7bfbc24249141b15ff622755
+FROM ${BASE_IMAGE}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-server sudo ca-certificates curl wget git rsync zip unzip less nano vim \
+    tmux procps iproute2 iputils-ping dnsutils net-tools lsof gcc g++ make cmake pkg-config \
+    && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* \
+    && mkdir -p /run/sshd /workspace /data
+COPY requirements-pytorch2.lock /tmp/requirements-pytorch2.lock
+RUN python -m pip install --no-cache-dir --require-hashes -r /tmp/requirements-pytorch2.lock \
+    && python -m pip check
+COPY verify_pytorch2.py /usr/local/share/campus-workbench/verify_pytorch2.py
+RUN python /usr/local/share/campus-workbench/verify_pytorch2.py
+WORKDIR /workspace
+EXPOSE 8888 22
+CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

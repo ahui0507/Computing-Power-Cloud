@@ -55,7 +55,7 @@ class ResourceService:
     @staticmethod
     def pool_capacity(db, pool):
         allowed = set(eligible_nodes(db))
-        result = {"free_gpus": 0, "physical_free_gpus": 0, "max_gpus_per_instance": 0,
+        result = {"ephemeral_storage_gib_per_gpu": settings.WORKLOAD_EPHEMERAL_GIB_PER_GPU, "free_gpus": 0, "physical_free_gpus": 0, "max_gpus_per_instance": 0,
                   "available_cpu_cores": 0, "available_ram_mb": 0,
                   "cpu_cores_per_gpu": None, "ram_mb_per_gpu": None, "node_gpu_count": None,
                   "system_cpu_percent": settings.NODE_RESERVED_CPU_PERCENT,

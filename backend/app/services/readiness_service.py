@@ -29,6 +29,8 @@ class ReadinessService:
             "quotas",
             "balance_credits",
             "notices",
+            "resource_queue",
+            "login_throttles",
         }
         if not required.issubset(tables):
             return {"status": "unhealthy", "database": "schema_incomplete"}

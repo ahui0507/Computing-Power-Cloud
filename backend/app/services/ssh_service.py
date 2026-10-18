@@ -3,6 +3,7 @@ import ipaddress
 from urllib.parse import urlsplit
 
 from app.core.exceptions import ResourceConflictError
+from app.core.config import settings
 from app.core.exceptions import ClusterOperationError
 from app.core.instance_credentials import ssh_password, ssh_password_hash
 from app.core.workspace import persistent_path
@@ -12,6 +13,7 @@ from app.infrastructure.kubernetes.gateway import KubernetesGateway
 from app.models.ssh_key import SSHKey
 from app.services.access_service import AccessService
 from app.services.job_service import JobService
+from app.services.ssh_gateway_service import SSHGatewayService
 
 
 class SSHService:
@@ -60,6 +62,17 @@ class SSHService:
         except ValueError:
             # The HTTP publishing port is independent of the instance SSH NodePort.
             host = urlsplit("//" + host).hostname or host
+        jump_host = settings.SSH_JUMP_HOST
+        if settings.SSH_GATEWAY_ENABLED:
+            if not settings.SSH_GATEWAY_ENDPOINT:
+                raise ClusterOperationError("实例 SSH 转发入口尚未配置")
+            gateway_user = SSHGatewayService.ensure(allocation)
+            jump_host = f"{gateway_user}@{settings.SSH_GATEWAY_ENDPOINT}"
+        if jump_host:
+            host = "127.0.0.1"
+        command = f"ssh -p {allocation.ssh_port} root@{host}"
+        if jump_host:
+            command = f"ssh -J {jump_host} -p {allocation.ssh_port} root@{host}"
         return {
             "host": host,
             "port": allocation.ssh_port,
@@ -67,7 +80,10 @@ class SSHService:
             "auth_type": "password",
             "password": ssh_password(allocation.id, user_id),
             "key_count": len(keys),
-            "command": f"ssh -p {allocation.ssh_port} root@{host}",
+            "tunnel_enabled": settings.SSH_TUNNEL_ENABLED,
+            "jump_host": jump_host,
+            "jump_uses_instance_password": bool(settings.SSH_GATEWAY_ENABLED),
+            "command": command,
             "workspace_path": "/workspace",
             "persistent_path": persistent_path(options),
         }

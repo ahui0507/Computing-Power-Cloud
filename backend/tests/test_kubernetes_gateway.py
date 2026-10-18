@@ -70,6 +70,48 @@ def test_bare_ipv6_jupyter_access_is_bracketed():
     )
 
 
+def test_public_proxy_tls_upgrades_existing_instance_links_without_cluster_tls(monkeypatch):
+    from app.core.config import settings
+    from app.services.access_service import AccessService
+
+    monkeypatch.setattr(settings, "PUBLIC_HTTPS_ENABLED", True)
+    monkeypatch.setattr(settings, "INGRESS_HOST", "192.0.2.2:64022")
+    monkeypatch.setattr(settings, "CONTROL_NODE_ID", None)
+    options = {"ingress_enabled": True, "ingress_host": settings.INGRESS_HOST, "use_tls": False}
+    assert AccessService.get_jupyter_url(None, 1, options=options) == "https://192.0.2.2:64022/jupyter/1/"
+    assert "tls" not in build_ingress(spec(settings.INGRESS_HOST))["spec"]
+    assert options["use_tls"] is False
+
+
+def test_public_proxy_tls_does_not_rewrite_other_ingress_endpoints(monkeypatch):
+    from app.core.config import settings
+    from app.services.access_service import AccessService
+
+    monkeypatch.setattr(settings, "PUBLIC_HTTPS_ENABLED", True)
+    monkeypatch.setattr(settings, "INGRESS_HOST", "192.0.2.2:64022")
+    monkeypatch.setattr(settings, "CONTROL_NODE_ID", None)
+    assert AccessService.get_jupyter_url(None, 1, options={"ingress_host": "other.example", "use_tls": False}) == "http://other.example/jupyter/1/"
+    assert AccessService.get_jupyter_url(None, 1, options={"ingress_host": "other.example", "use_tls": True}) == "https://other.example/jupyter/1/"
+
+
+def test_public_proxy_tls_does_not_change_direct_nodeport_access(monkeypatch):
+    from app.core.config import settings
+    from app.services.access_service import AccessService
+
+    monkeypatch.setattr(settings, "PUBLIC_HTTPS_ENABLED", True)
+    monkeypatch.setattr(settings, "CONTROL_NODE_ID", None)
+    assert AccessService.get_jupyter_url(None, 1, node_ip="192.0.2.3", port=30001, options={"ingress_enabled": False}) == "http://192.0.2.3:30001/"
+
+
+def test_public_proxy_tls_can_be_disabled_for_rollback(monkeypatch):
+    from app.core.config import settings
+    from app.services.access_service import AccessService
+
+    monkeypatch.setattr(settings, "PUBLIC_HTTPS_ENABLED", False)
+    monkeypatch.setattr(settings, "INGRESS_HOST", "192.0.2.2:64022")
+    assert AccessService.get_jupyter_url(None, 1, options={"ingress_host": settings.INGRESS_HOST, "use_tls": False}) == "http://192.0.2.2:64022/jupyter/1/"
+
+
 def test_running_pod_without_readiness_is_still_pending():
     core = MagicMock()
     core.read_namespaced_pod.return_value = SimpleNamespace(

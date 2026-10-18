@@ -1,0 +1,18 @@
+[Unit]
+Description=Verify approved GPU identity domains before allowing workloads
+After=systemd-udev-trigger.service
+Before=k3s-agent.service platform-worker-agent.service platform-monitor-agent.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 -I /usr/local/sbin/cpcloud-verify-gpu-domains --config /etc/cpcloud/gpu-domains.json
+TimeoutStartSec=60
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+
+[Install]
+WantedBy=multi-user.target

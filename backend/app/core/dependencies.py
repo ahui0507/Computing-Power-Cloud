@@ -29,8 +29,10 @@ async def get_current_user(
         user_id = int(payload["sub"])
     except (KeyError, ValueError, TypeError) as exc:
         raise invalid from exc
-    user = db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
+    user = db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).populate_existing().first()
     if user is None:
+        raise invalid
+    if payload.get("auth_version", 0) != (user.auth_version or 0):
         raise invalid
     if user.status != UserStatus.ACTIVE:
         raise HTTPException(403, "User is not active")

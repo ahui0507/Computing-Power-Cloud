@@ -28,6 +28,7 @@ from app.models.setting import Setting
 from app.models.telemetry import NodeMetric
 from app.models.backup import Backup, BackupType
 from app.models.notice import Notice
+from app.models.platform_improvements import ResourceQueue, LoginThrottle
 
 __all__ = [
     "Notice",

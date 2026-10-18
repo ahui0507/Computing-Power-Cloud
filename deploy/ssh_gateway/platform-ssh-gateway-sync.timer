@@ -1,0 +1,10 @@
+[Unit]
+Description=Revoke expired instance SSH forwarding identities
+
+[Timer]
+OnBootSec=20s
+OnUnitInactiveSec=15s
+Unit=platform-ssh-gateway-sync.service
+
+[Install]
+WantedBy=timers.target

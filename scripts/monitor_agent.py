@@ -53,6 +53,25 @@ def parse_gpus(text):
     return values
 
 
+@lru_cache(maxsize=1)
+def gpu_capabilities():
+    """Older drivers may not expose compute_cap; keep other telemetry working."""
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=uuid,compute_cap", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode:
+            return {}
+        return {
+            row[0].strip(): row[1].strip()
+            for row in csv.reader(io.StringIO(result.stdout), skipinitialspace=True)
+            if len(row) == 2 and re.fullmatch(r"\d+\.\d+", row[1].strip())
+        }
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return {}
+
+
 def gpu_sample():
     try:
         result = subprocess.run(["nvidia-smi",
@@ -62,7 +81,11 @@ def gpu_sample():
             if "No devices were found" in result.stdout + result.stderr:
                 return [], None
             return [], "NVIDIA 指标暂时不可读取"
-        return parse_gpus(result.stdout), None
+        values = parse_gpus(result.stdout)
+        capabilities = gpu_capabilities()
+        for gpu in values:
+            gpu["compute_capability"] = capabilities.get(gpu["uuid"])
+        return values, None
     except FileNotFoundError:
         return [], None  # 无 GPU 的节点由服务器登记数量决定是否需要 GPU 指标。
     except (subprocess.TimeoutExpired, ValueError):

@@ -12,7 +12,15 @@
       @retry="remote.refresh"
     >
       <template v-if="remote.data.value">
-        <p class="caption">在本机终端粘贴命令，按提示输入下方密码。</p>
+        <p class="caption">
+          在 PowerShell 或本机终端粘贴下方命令。<template v-if="!remote.data.value.jump_host">按提示输入下方实例密码。</template>
+        </p>
+        <p v-if="remote.data.value.jump_uses_instance_password" class="caption">
+          已为本实例配置专用 SSH 转发账号。两次密码提示均输入下方实例密码。
+        </p>
+        <p v-else-if="remote.data.value.jump_host" class="caption">
+          第一次提示 {{ remote.data.value.jump_host.split('@')[0] }} 的密码时，请输入该账号的控制节点 SSH 密码；第二次提示 root 的密码时，再输入下方实例密码。平台登录密码和下方实例密码均不能代替控制节点 SSH 密码。
+        </p>
         <div class="ssh-credential">
           <label>连接命令</label>
           <div>
@@ -26,7 +34,7 @@
           </div>
         </div>
         <div class="ssh-credential">
-          <label>登录密码</label>
+          <label>{{ remote.data.value.jump_uses_instance_password ? '实例密码（两次均使用此密码）' : remote.data.value.jump_host ? '实例 root 密码（第二次输入）' : '实例登录密码' }}</label>
           <div>
             <code>{{ remote.data.value.password }}</code
             ><el-button
@@ -62,6 +70,8 @@ import AsyncState from './AsyncState.vue'
 const props = defineProps<{ modelValue: boolean; containerId: string }>()
 defineEmits<{ 'update:modelValue': [value: boolean] }>()
 type Connection = {
+  jump_host?: string | null
+  jump_uses_instance_password?: boolean
   command: string
   password: string
   persistent_path?: string

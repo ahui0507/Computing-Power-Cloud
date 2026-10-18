@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class GPUMetricInput(BaseModel):
+    compute_capability: Optional[str] = Field(default=None, max_length=16, pattern=r"^[0-9]+\.[0-9]+$")
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
     index: int = Field(ge=0, le=4096)
     uuid: str = Field(min_length=1, max_length=100)

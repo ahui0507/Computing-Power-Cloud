@@ -35,6 +35,7 @@ from app.routers import (
 from app.routers import console, jobs
 from app.routers import monitoring
 from app.routers import workspace, notices
+from app.routers import ssh_tunnel
 from app.services.telemetry_service import telemetry_cleanup_loop
 
 
@@ -122,6 +123,7 @@ app.include_router(jobs.router)
 app.include_router(monitoring.router)
 app.include_router(notices.router)
 app.include_router(workspace.router)
+app.include_router(ssh_tunnel.router)
 
 
 @app.get("/")

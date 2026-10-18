@@ -97,7 +97,7 @@ const routes: RouteRecordRaw[] = [
             path: 'maintenance',
             name: 'Maintenance',
             component: () => import('@/views/admin/Maintenance.vue'),
-            meta: { title: '存储与备份' },
+            meta: { title: '存储与运行保障' },
           },
           {
             path: 'nodes',

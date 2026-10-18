@@ -44,7 +44,7 @@ python -u /data/hello.py</pre>
         <div class="guide-step">
           <h3>保存结果并释放实例</h3>
           <p>
-            将需要保留的结果主动保存到 /data。实例系统盘和 /workspace
+            实例临时磁盘按申请的 GPU 数量分配，限额在创建页和实例列表显示；系统盘可写层、/tmp、/workspace 和日志合并计量。超额可能终止实例。将需要保留的结果主动保存到 /data。实例系统盘和 /workspace
             为临时空间，释放后会删除；/data
             文件继续保留。使用结束后释放实例，费用会结算并进入历史订单。下次申请实例可接着使用。
           </p>
@@ -57,8 +57,8 @@ python -u /data/hello.py</pre>
         <el-collapse
           ><el-collapse-item title="个人存储有额度吗？" name="storage-quota"
             ><p class="caption">
-              个人文件与保存的镜像共用存储额度，由管理员按用户存储池的份额分配。「我的文件」显示占用比例，接近上限时会提醒；达到额度后需要清理文件、镜像或联系管理员调整份额，原文件继续保留。请将模型定期保存到
-              /data，备份无法保存训练进程的内存状态。
+              申请 GPU 算力时自动附带个人持久存储，默认300 GiB，实际额度以创建页和「我的文件」显示为准。同一账号的实例共享 /data，重复申请不叠加额度，释放实例后文件继续保留。个人文件与保存的镜像共用额度，接近上限时提醒；达到额度后需要清理或联系管理员扩容，原文件继续保留。请将模型定期保存到
+              /data，释放实例会终止正在运行的进程。
             </p></el-collapse-item
           ><el-collapse-item title="关闭网页会停止计费吗？" name="billing"
             ><p class="caption">
@@ -74,6 +74,17 @@ python -u /data/hello.py</pre>
               进入运行任务，选择运行中的实例，输入命令。命令以临时 /workspace
               为工作目录执行，日志可在线查看。释放实例会终止任务，取消任务不会释放实例。
             </p></el-collapse-item
+          ><el-collapse-item title="训练中断后如何继续？" name="resume">
+            <p class="caption">新生成的训练示例每个epoch保存模型、优化器及进度到脚本旁的checkpoint.pt。将示例放在个人存储目录；释放后从历史订单再次申请，选择原镜像或已保存的个人镜像，再运行：</p>
+            <pre class="hint-box mono">python /data/示例目录/train.py --resume /data/示例目录/checkpoint.pt --epochs 10</pre>
+            <p class="caption">epochs表示目标总轮数；多卡使用torchrun并追加相同参数。中断时从最近完成的epoch恢复。镜像保存不包含训练进程，恢复后仍需手动启动命令；自行编写的训练代码需实现自己的checkpoint逻辑。</p>
+          </el-collapse-item
+          ><el-collapse-item title="资源不足时可以排队吗？" name="queue">
+            <p class="caption">创建页可选择排队申请，等待期间不占卡、不计费，可在我的实例取消。资源可用后自动申请并通知，分配时重新校验价格、余额和配额。每账号最多3个未完成申请，默认24小时过期。较小申请可能先于暂不能满足的大申请启动。</p>
+          </el-collapse-item
+          ><el-collapse-item title="可以定时释放吗？" name="schedule">
+            <p class="caption">创建时可设置首次就绪后多少小时释放，或在我的实例设置具体时间、修改或取消。到期前60分钟和10分钟发出站内提醒。到期会终止所有程序，个人存储文件保留；包时订单提前释放不退费。若镜像正在保存，回收等待保存完成或超时，计费截止仍保留原计划时间。</p>
+          </el-collapse-item
           ><el-collapse-item title="SSH 与镜像快照支持吗？" name="access"
             ><p class="caption">
               公共工作环境支持 JupyterLab、SSH 和 SFTP。从我的实例打开 SSH

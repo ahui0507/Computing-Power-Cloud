@@ -63,6 +63,15 @@ describe('resource request recovery', () => {
     await expect(store.applyResource(input)).resolves.toMatchObject({ container_id: 'container-1' })
   })
 
+  it('returns the acknowledged instance while list refresh is still pending', async () => {
+    const store = useResourceStore()
+    vi.mocked(resourceApi.apply).mockResolvedValue(created)
+    let finish!: (value: { code: number; message: string; data: Container[] }) => void
+    vi.mocked(resourceApi.getMyResources).mockReturnValue(new Promise((resolve) => { finish = resolve }))
+    await expect(store.applyResource(input)).resolves.toMatchObject({ container_id: 'container-1' })
+    finish({ code: 200, message: '', data: [] })
+  })
+
   it('resetting the application explicitly starts a new request', async () => {
     const store = useResourceStore()
     vi.mocked(resourceApi.apply).mockRejectedValue({ code: 0 })

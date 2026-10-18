@@ -1,0 +1,11 @@
+{
+  "image": "ubuntu:22.04",
+  "manifest_digest": "sha256:98510ac07bb4545e389be502a8918b385c018bfe4ceeb5ac7e0375c782268b04",
+  "config_digest": "sha256:cee13550f97b8a595506e8e4ca74263ba44924248779a4ba4f942e197652acff",
+  "miniconda": {
+    "filename": "Miniconda3-py311_24.9.2-0-Linux-x86_64.sh",
+    "url": "https://repo.anaconda.com/miniconda/Miniconda3-py311_24.9.2-0-Linux-x86_64.sh",
+    "sha256": "62ef806265659c47e37e22e8f9adce29e75c4ea0497e619c280f54c823887c4f",
+    "bytes": 146504051
+  }
+}

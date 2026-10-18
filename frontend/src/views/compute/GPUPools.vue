@@ -62,6 +62,10 @@
                 </dd>
               </div>
               <div>
+                <dt>GPU 架构</dt>
+                <dd>{{ pool.architecture || '待采集' }}</dd>
+              </div>
+              <div>
                 <dt>计算能力</dt>
                 <dd>{{ pool.compute_capability || '待登记' }}</dd>
               </div>
@@ -70,7 +74,7 @@
                 <dd>{{ pool.driver_versions?.join(' / ') || '待采集' }}</dd>
               </div>
               <div>
-                <dt>最高 CUDA（架构）</dt>
+                <dt>架构支持的 CUDA</dt>
                 <dd>{{ pool.cuda_arch_max || '待核验' }}</dd>
               </div>
               <div>
@@ -78,14 +82,6 @@
                 <dd>
                   {{ pool.driver_cuda_versions?.join(' / ') || '待采集' }}
                 </dd>
-              </div>
-              <div>
-                <dt>每卡 CPU 份额</dt>
-                <dd>{{ shareText(1, pool.node_gpu_count) }}</dd>
-              </div>
-              <div>
-                <dt>每卡内存份额</dt>
-                <dd>{{ shareText(1, pool.node_gpu_count) }}</dd>
               </div>
             </dl>
             <p v-if="pool.recommended_environment" class="gpu-runtime-note">
@@ -140,14 +136,14 @@
               </div>
               <el-button
                 type="primary"
-                :disabled="pool.free_gpus < 1"
+                :disabled="pool.total_gpus < 1"
                 @click="
                   router.push({
                     path: '/compute/apply',
-                    query: { pool_id: pool.pool_id },
+                    query: { pool_id: pool.pool_id, queue: pool.free_gpus < 1 ? '1' : undefined },
                   })
                 "
-                >创建实例<el-icon><ArrowRight /></el-icon
+                >{{ pool.free_gpus < 1 ? '排队申请' : '创建实例' }}<el-icon><ArrowRight /></el-icon
               ></el-button>
             </div>
             <div class="package-offers">
@@ -205,7 +201,6 @@ import { useBillingStore } from '@/stores/billing'
 import { useAutoRefresh } from '@/composables/useAutoRefresh'
 import PageHeader from '@/components/PageHeader.vue'
 import AsyncState from '@/components/AsyncState.vue'
-import { shareText } from '@/utils/compute'
 const router = useRouter(),
   store = useResourceStore(),
   billing = useBillingStore()

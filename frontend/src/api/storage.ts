@@ -10,10 +10,15 @@ export interface StorageUsage {
   share_percent: number
   warning: 'none' | 'low' | 'full'
 }
+export type TrainingFramework = 'pytorch' | 'tensorflow'
+
 export interface TrainingExampleResult {
+  framework: TrainingFramework
   folder: string
   single_command: string
   multi_command: string
+  resume_command?: string
+  multi_resume_command?: string
 }
 
 export const storageApi = {
@@ -21,9 +26,10 @@ export const storageApi = {
     request.get<ApiResponse<StorageUsage>>('/storage/usage', {
       silentError: true,
     }),
-  trainingExample: () =>
+  trainingExample: (framework: TrainingFramework = 'pytorch') =>
     request.post<ApiResponse<TrainingExampleResult>>(
       '/storage/examples/training',
+      { framework },
     ),
   // 上传文件
   upload: (

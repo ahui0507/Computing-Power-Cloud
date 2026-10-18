@@ -1,0 +1,25 @@
+[Unit]
+Description=Independent CPCloud node and background progress watchdog
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /usr/local/lib/cpcloud-watchdog/watchdog.py check
+StateDirectory=cpcloud-watchdog
+StateDirectoryMode=0755
+RuntimeDirectory=cpcloud-watchdog
+RuntimeDirectoryMode=0700
+TimeoutStartSec=45
+TimeoutStopSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectControlGroups=yes
+ProtectKernelTunables=yes
+CapabilityBoundingSet=
+ReadWritePaths=/run/cpcloud-watchdog
+CPUQuota=10%
+MemoryMax=192M
+UMask=0022
+

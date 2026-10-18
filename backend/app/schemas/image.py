@@ -13,6 +13,7 @@ class ImageResponse(BaseModel):
 
     image_id: int
     name: str
+    display_name: Optional[str] = None
     tag: str
     desc: str
     size: Optional[float] = None

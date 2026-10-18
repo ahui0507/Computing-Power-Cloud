@@ -1,0 +1,7 @@
+# Add the standard sudo program while preserving the supplied software environment.
+ARG BASE_IMAGE=campus-workbench:20261012
+FROM ${BASE_IMAGE}
+USER root
+RUN apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 update \
+    && apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 install -y --no-install-recommends sudo \
+    && rm -rf /var/lib/apt/lists/*

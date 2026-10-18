@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.core.response import success_response
-from app.schemas.storage import DeleteFileRequest
+from app.schemas.storage import DeleteFileRequest, TrainingExampleRequest
 from app.services.storage_service import StorageService
 from app.models.user import User
 from pydantic import BaseModel, Field
@@ -22,10 +22,16 @@ router = APIRouter(prefix="/storage", tags=["存储管理"])
 
 
 @router.post("/examples/training")
-def training_example(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def training_example(
+    request: TrainingExampleRequest | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     from app.services.environment_service import EnvironmentService
 
-    result = EnvironmentService.training_example(db, user.id)
+    result = EnvironmentService.training_example(
+        db, user.id, framework=request.framework if request else "pytorch"
+    )
     audit(db, user, "创建训练示例", "folder", result["folder"])
     db.commit()
     return success_response(data=result)

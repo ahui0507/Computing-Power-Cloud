@@ -27,6 +27,7 @@ class ImageService:
         return {
             "image_id": image.id,
             "name": image.name,
+            "display_name": image.display_name,
             "tag": image.tag,
             "desc": image.desc or "",
             "size": float(image.size or 0),

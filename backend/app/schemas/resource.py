@@ -1,6 +1,7 @@
 """资源请求与响应契约，实例状态统一面向前端表达。"""
 
 from enum import Enum
+from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -23,6 +24,7 @@ class ResourcePoolResponse(BaseModel):
     free_gpus: int
     physical_free_gpus: int = 0
     max_gpus_per_instance: int = 0
+    queue_max_gpus_per_instance: int = 0
     cpu_cores_per_gpu: Optional[float] = None
     ram_mb_per_gpu: Optional[int] = None
     node_gpu_count: Optional[int] = None
@@ -30,8 +32,10 @@ class ResourcePoolResponse(BaseModel):
     system_ram_percent: float = 20
     available_cpu_cores: float = 0
     available_ram_mb: int = 0
+    ephemeral_storage_gib_per_gpu: Optional[int] = None
     memory_mb: Optional[int] = None
     compute_capability: Optional[str] = None
+    architecture: Optional[str] = None
     driver_versions: list[str] = Field(default_factory=list)
     driver_cuda_versions: list[str] = Field(default_factory=list)
     cuda_arch_max: Optional[str] = None
@@ -52,7 +56,7 @@ class ApplyResourceRequest(BaseModel):
     pool_id: int = Field(gt=0)
     gpu_count: int = Field(gt=0)
     image_id: int = Field(gt=0)
-    duration: Optional[int] = Field(default=None, gt=0)
+    duration: Optional[int] = Field(default=None, gt=0, le=720, description="首次就绪后自动释放的小时数，最多30天")
     billing_mode: Literal["on_demand", "prepaid", "day", "week"] = Field(
         default="on_demand",
         description="on_demand 按时，day 包日，week 包周；prepaid 为旧值，新请求请明确选择 day 或 week",
@@ -72,6 +76,7 @@ class ContainerResponse(BaseModel):
     cpu_cores: Optional[float] = None
     node_gpu_count: Optional[int] = None
     ram_mb: Optional[int] = None
+    ephemeral_storage_gib: Optional[int] = None
     image: str
     status: ContainerStatus
     start_time: Optional[str] = None
@@ -81,6 +86,8 @@ class ContainerResponse(BaseModel):
     billing_mode: str = "on_demand"
     package_amount: Optional[float] = None
     package_expires_at: Optional[str] = None
+    scheduled_release_at: Optional[str] = None
+    release_after_hours: Optional[int] = None
     package_refunded: bool = False
     settled_amount: Optional[float] = None
     pool_id: Optional[int] = None
@@ -94,6 +101,9 @@ class ContainerResponse(BaseModel):
 
 
 class ApplyResourceResponse(BaseModel):
+    persistent_path: str = "/data"
+    storage_scope: Literal["user"] = "user"
+    personal_storage_limit_gib: Optional[float] = None
     container_id: str
     node_id: int
     status: ContainerStatus
@@ -106,6 +116,12 @@ class ApplyResourceResponse(BaseModel):
 
 class ReleaseResourceRequest(BaseModel):
     container_id: str = Field(min_length=1)
+    confirmation_token: Optional[str] = Field(default=None, max_length=4096)
+    confirm_unchecked: bool = False
+
+
+class ReleaseScheduleRequest(BaseModel):
+    release_at: Optional[datetime] = None
 
 
 class ReleaseResourceResponse(BaseModel):

@@ -1,0 +1,31 @@
+ARG BASE_IMAGE=pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime@sha256:c8268a92a69bd500f8be0e665b2630ee006dadaf7bfbc24249141b15ff622755
+FROM ${BASE_IMAGE}
+USER root
+ENV CUDA_HOME=/usr/local/cuda LANG=C.UTF-8 LC_ALL=C.UTF-8
+COPY nvidia-cuda-archive-key.asc /usr/share/keyrings/nvidia-cuda-archive-key.asc
+COPY cuda-pytorch2-devel-debs.lock.json /usr/local/share/campus-workbench/cuda-pytorch2-devel-debs.lock.json
+RUN printf 'deb [signed-by=/usr/share/keyrings/nvidia-cuda-archive-key.asc] https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ /\n' > /etc/apt/sources.list.d/cuda.list \
+    && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    openssh-server sudo ca-certificates curl wget git rsync zip unzip less nano vim \
+    tmux procps iproute2 iputils-ping dnsutils net-tools lsof build-essential cmake pkg-config \
+    && python -c 'import json, subprocess; rows=json.load(open("/usr/local/share/campus-workbench/cuda-pytorch2-devel-debs.lock.json"))["packages"]; subprocess.run(["apt-get", "install", "-y", "--no-install-recommends", *[r["Package"]+"="+r["Version"] for r in rows]], check=True)' \
+    && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* \
+    && mkdir -p /run/sshd /workspace /data /usr/local/share/campus-workbench
+COPY requirements-pytorch2-devel.lock /usr/local/share/campus-workbench/requirements-pytorch2-devel.lock
+RUN python -m pip install --no-cache-dir --require-hashes \
+    -r /usr/local/share/campus-workbench/requirements-pytorch2-devel.lock \
+    && python -m pip check
+COPY verify_pytorch2_devel.py /usr/local/share/campus-workbench/verify_pytorch2_devel.py
+COPY clean-public-image.sh /usr/local/share/campus-workbench/clean-public-image.sh
+RUN printf '#!/bin/sh\nexec /opt/conda/bin/python /usr/local/share/campus-workbench/verify_pytorch2_devel.py "$@"\n' > /usr/local/bin/campus-check \
+    && chmod 755 /usr/local/bin/campus-check \
+    && campus-check --compile-cuda \
+    && python -m pip freeze > /usr/local/share/campus-workbench/python-packages.txt \
+    && dpkg-query -W > /usr/local/share/campus-workbench/linux-packages.txt \
+    && sh /usr/local/share/campus-workbench/clean-public-image.sh
+LABEL org.opencontainers.image.title="PyTorch CUDA development workbench" \
+      org.opencontainers.image.version="pytorch2-devel-20261017" \
+      campus.python="3.11" campus.pytorch="2.5.1+cu124" campus.cuda="12.4" campus.cuda.devel="true"
+WORKDIR /workspace
+EXPOSE 8888 22
+CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

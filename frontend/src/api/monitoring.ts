@@ -44,6 +44,15 @@ export interface MetricHistory {
 }
 export interface InstanceMetrics {
   runtime?: {
+    ephemeral_storage?: {
+      state: 'live' | 'stale' | 'missing'
+      used_bytes: number | null
+      limit_bytes: number | null
+      remaining_bytes: number | null
+      used_percent: number | null
+      sampled_at: string | null
+      warning: 'none' | 'warning' | 'critical' | 'unknown'
+    }
     state: 'live' | 'missing'
     cpu_percent: number | null
     memory_percent: number | null

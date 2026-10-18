@@ -1,0 +1,31 @@
+ARG BASE_IMAGE=pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+FROM ${BASE_IMAGE}
+USER root
+ENV CUDA_HOME=/usr/local/cuda LANG=C.UTF-8 LC_ALL=C.UTF-8
+COPY requirements-pytorch2-devel.lock /usr/local/share/campus-workbench/requirements-pytorch2-devel.lock
+COPY cuda-pytorch2-devel-debs.lock.json /usr/local/share/campus-workbench/cuda-pytorch2-devel-debs.lock.json
+RUN --mount=type=bind,source=offline-debs,target=/opt/offline/debs,readonly \
+    --mount=type=bind,source=wheels,target=/opt/offline/wheels,readonly \
+    --mount=type=bind,source=SHA256SUMS,target=/opt/offline/SHA256SUMS,readonly \
+    --mount=type=bind,source=requirements-pytorch2-devel.lock,target=/opt/offline/requirements-pytorch2-devel.lock,readonly \
+    cd /opt/offline && sha256sum -c SHA256SUMS \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install /opt/offline/debs/*.deb \
+    && python -m pip install --no-cache-dir --no-index --find-links=/opt/offline/wheels --require-hashes \
+       -r /opt/offline/requirements-pytorch2-devel.lock \
+    && python -m pip check \
+    && mkdir -p /run/sshd /workspace /data /usr/local/share/campus-workbench \
+    && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_*
+COPY verify_pytorch2_devel.py /usr/local/share/campus-workbench/verify_pytorch2_devel.py
+COPY clean-public-image.sh /usr/local/share/campus-workbench/clean-public-image.sh
+RUN printf '#!/bin/sh\nexec /opt/conda/bin/python /usr/local/share/campus-workbench/verify_pytorch2_devel.py "$@"\n' > /usr/local/bin/campus-check \
+    && chmod 755 /usr/local/bin/campus-check \
+    && campus-check --compile-cuda \
+    && python -m pip freeze > /usr/local/share/campus-workbench/python-packages.txt \
+    && dpkg-query -W > /usr/local/share/campus-workbench/linux-packages.txt \
+    && sh /usr/local/share/campus-workbench/clean-public-image.sh
+LABEL org.opencontainers.image.title="PyTorch CUDA development workbench" \
+      org.opencontainers.image.version="pytorch2-devel-20261017" \
+      campus.python="3.11" campus.pytorch="2.5.1+cu124" campus.cuda="12.4" campus.cuda.devel="true"
+WORKDIR /workspace
+EXPOSE 8888 22
+CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

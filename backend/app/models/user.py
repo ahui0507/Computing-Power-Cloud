@@ -24,6 +24,7 @@ class User(Base):
     email = Column(String(128), unique=True, nullable=True, index=True, comment="邮箱")
     phone = Column(String(32), unique=True, nullable=True, index=True, comment="手机号")
     password_hash = Column(String(255), nullable=False, comment="密码哈希")
+    auth_version = Column(Integer, nullable=False, default=0, server_default="0")
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, default=2, comment="角色ID，默认2=user")
     balance = Column(Numeric(12, 4), nullable=False, default=0.0000, comment="余额")
     status = Column(

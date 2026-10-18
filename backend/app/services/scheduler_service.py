@@ -51,7 +51,13 @@ class SchedulerService:
     @staticmethod
     def result(db, allocation, message="Resource request submitted"):
         response = InstanceService.to_response(db, allocation)
+        storage = QuotaService.limits(db, allocation.user_id)
         return {
+            "persistent_path": response.persistent_path,
+            "storage_scope": "user",
+            "personal_storage_limit_gib": storage["storage_limit_gib"]
+            if settings.STORAGE_QUOTA_ENABLED and storage["storage_mode"] == "fixed"
+            else None,
             "container_id": response.container_id,
             "node_id": response.node_id,
             "status": response.status.value,
@@ -83,6 +89,7 @@ class SchedulerService:
         image_id: int,
         billing_mode: str = "on_demand",
         idempotency_key=None,
+        duration=None,
     ):
         if billing_mode not in ("on_demand", *PACKAGES):
             raise OperationNotSupportedError("请明确选择按时、包日或包周计费")
@@ -92,6 +99,10 @@ class SchedulerService:
             image_id=image_id,
             billing_mode=billing_mode,
         )
+        if duration is not None:
+            if not isinstance(duration, int) or not 1 <= duration <= 720:
+                raise ResourceConflictError("定时释放需设置为1至720小时")
+            parameters["duration"] = duration
         request_id, fingerprint = SchedulerService.request_identity(
             user_id, idempotency_key, parameters
         )
@@ -165,6 +176,7 @@ class SchedulerService:
                 if billing_mode in PACKAGES
                 else None,
                 created_at=datetime.utcnow(),
+                release_after_hours=duration,
             )
             # 先争取唯一请求标识，重复请求不会先竞争 GPU 名额。
             db.add(allocation)
@@ -201,6 +213,7 @@ class SchedulerService:
                         image.supports_ssh,
                         cpu_cores=allocation.cpu_cores,
                         cpu_millicores=allocation.cpu_millicores,
+                        gpu_count=gpu_count,
                         ram_mb=allocation.ram_mb,
                     ),
                 )

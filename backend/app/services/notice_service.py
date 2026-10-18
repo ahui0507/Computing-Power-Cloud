@@ -80,7 +80,15 @@ class NoticeService:
             AllocationStatus.ACTIVE,
         ]
         rows = db.query(Allocation).filter(Allocation.status.in_(active)).all()
+        if settings.INSTANCE_SAFETY_ENABLED:
+            from app.services.temporary_storage_monitor import refresh_temporary_storage
+            refresh_temporary_storage(db, rows, now)
         for row in rows:
+            release_at = utc_naive(row.scheduled_release_at) if row.scheduled_release_at else None
+            if release_at and 0 < (release_at - now).total_seconds() <= 3600:
+                lead = 10 if (release_at - now).total_seconds() <= 600 else 60
+                local_release = release_at.replace(tzinfo=timezone.utc).astimezone(ZoneInfo("Asia/Shanghai")).strftime("%m-%d %H:%M")
+                NoticeService.emit(db, row.user_id, f"schedule:{row.id}:{release_at.isoformat()}:{lead}", "定时释放即将到期", f"实例将于 {local_release} 自动释放，所有运行中的程序会终止。请保存checkpoint、个人文件及需要保留的环境。", allocation_id=row.id, expires_at=release_at)
             deadline = utc_naive(row.package_expires_at) if row.package_expires_at else None
             if deadline and 0 < (deadline - now).total_seconds() <= 3600:
                 minutes = (deadline - now).total_seconds() / 60
@@ -149,6 +157,12 @@ class NoticeService:
                     db, user_id, StorageQuotaService.prepare(db, user_id), now
                 )
         ended = db.query(Allocation.id).filter(~Allocation.status.in_(active))
+        # Rescheduling and cancelling invalidate reminders for the old deadline.
+        valid_schedules = [f"schedule:{r.id}:{utc_naive(r.scheduled_release_at).isoformat()}:{lead}" for r in rows if r.scheduled_release_at for lead in (10, 60)]
+        obsolete = db.query(Notice).filter(Notice.dedup_key.like("schedule:%"), Notice.expires_at > now)
+        if valid_schedules:
+            obsolete = obsolete.filter(~Notice.dedup_key.in_(valid_schedules))
+        obsolete.update({"expires_at": now}, synchronize_session=False)
         db.query(Notice).filter(Notice.allocation_id.in_(ended), Notice.expires_at > now).update(
             {"expires_at": now}, synchronize_session=False
         )

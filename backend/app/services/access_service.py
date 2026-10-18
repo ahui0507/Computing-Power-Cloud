@@ -34,9 +34,12 @@ class AccessService:
                 return None
             host = url_host(host)
             return f"http://{host}:{port}/"
-        protocol = "https" if options.get("use_tls", settings.INGRESS_USE_TLS) else "http"
         host = options.get("ingress_host") or AccessService.get_jupyter_host(db)
         host = url_host(host)
+        public_tls = settings.PUBLIC_HTTPS_ENABLED and host == url_host(
+            AccessService.get_jupyter_host(db)
+        )
+        protocol = "https" if public_tls or options.get("use_tls", settings.INGRESS_USE_TLS) else "http"
         return f"{protocol}://{host}/jupyter/{allocation_id}/"
 
     @staticmethod

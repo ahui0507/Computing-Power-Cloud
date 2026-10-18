@@ -48,6 +48,8 @@ class K8sService:
             workspace_gid=settings.WORKSPACE_GID,
             gpu_runtime_class=settings.K8S_GPU_RUNTIME_CLASS,
             shared_memory_size=settings.WORKLOAD_SHM_SIZE_LIMIT,
+            isolation_enabled=settings.WORKLOAD_ISOLATION_ENABLED,
+            isolation_policy_sha256=settings.WORKLOAD_NETWORK_POLICY_SHA256,
             cpu_cores=getattr(allocation, "cpu_cores", None),
             cpu_millicores=getattr(allocation, "cpu_millicores", None),
             ram_mb=getattr(allocation, "ram_mb", None),

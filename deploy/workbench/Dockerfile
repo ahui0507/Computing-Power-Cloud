@@ -8,7 +8,7 @@ FROM jupyter-test:latest
 USER root
 RUN sed -i 's|http://deb.debian.org/debian|https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list.d/debian.sources \
     && apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 update \
-    && apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 install -y --no-install-recommends openssh-server ca-certificates curl git \
+    && apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=1 install -y --no-install-recommends openssh-server ca-certificates curl git sudo \
     && rm -rf /var/lib/apt/lists/* /etc/ssh/ssh_host_* \
     && mkdir -p /run/sshd && passwd -d root
 COPY --from=python-environment /opt/campus-python /opt/campus-python

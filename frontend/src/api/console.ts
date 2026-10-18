@@ -39,6 +39,7 @@ export interface AuditEntry {
   result: string
 }
 export const consoleApi = {
+  revokeSessions: () => request.post('/account/revoke-sessions'),
   capabilities: () =>
     request.get<ApiResponse<Capabilities>>('/platform/capabilities', {
       skipAuth: true,

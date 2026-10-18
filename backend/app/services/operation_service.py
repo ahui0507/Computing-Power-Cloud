@@ -38,6 +38,7 @@ class OperationService:
         cpu_cores=None,
         ram_mb=None,
         cpu_millicores=None,
+        gpu_count=None,
         storage_layout=SEPARATE_LAYOUT,
     ):
         return {
@@ -58,9 +59,12 @@ class OperationService:
                 "gpu_runtime_class": settings.K8S_GPU_RUNTIME_CLASS,
                 "shared_memory_size": settings.WORKLOAD_SHM_SIZE_LIMIT,
                 "nccl_p2p_disable": settings.WORKLOAD_NCCL_P2P_DISABLE,
+                "isolation_enabled": settings.WORKLOAD_ISOLATION_ENABLED,
+                "isolation_policy_sha256": settings.WORKLOAD_NETWORK_POLICY_SHA256,
                 "cpu_cores": cpu_cores,
                 "cpu_millicores": cpu_millicores,
                 "ram_mb": ram_mb,
+                "ephemeral_storage_gib": settings.WORKLOAD_EPHEMERAL_GIB_PER_GPU * gpu_count if gpu_count else None,
                 "ssh_enabled": settings.SSH_ENABLED and ssh_enabled,
             },
             "access_host": host
